@@ -73,19 +73,31 @@ Gestion dynamique des Meta Tags avec React Helmet Async.
 Génération dynamique de sitemap.xml et robots.txt côté backend.
 Données structurées (JSON-LD) pour les cours en ligne.
 
-Partie 7 : Déploiement et Maintenance
+Partie 7 : Framework Agentic IA
+Transformer la plateforme en écosystème d'automatisation intelligente.
+Chapitre 12 : Framework Agentic IA et Services Intelligents
+Architecture du framework multi-agents (Service Registry, Tool Registry, Orchestrateur).
+Configuration YAML des services (News Scraper, Research Assistant, Crypto Analyst).
+API agent-services et modèles de données associés.
+Dashboard frontend pour l'interaction avec les services.
+Création et extension de nouveaux services agentic.
+
+Partie 8 : Déploiement et Maintenance
 Mettre le tout en "prod".
-Chapitre 12 : Dockerisation Avancée
-Optimisation des images (Multi-stage builds).
-Configuration de production (Gunicorn, Uvicorn workers).
+Chapitre 13 : Configuration du Serveur de Production
+Configuration complète d'Ubuntu Server 24.04 (sécurisation SSH, pare-feu).
+Installation et optimisation de Docker.
+Déploiement avec Traefik et Let's Encrypt (HTTPS automatique).
 Stratégie de sauvegarde et maintenance du serveur.
 
 Conclusion du Tome 1
-État des lieux : Une plateforme d'apprentissage robuste et extensible.
-Ouverture sur l'automatisation et l'IA.
+État des lieux : Une plateforme d'apprentissage transformée en écosystème d'automatisation intelligente.
+Ouverture sur les possibilités d'extension et d'intégration d'IA avancée.
 
 Points clés techniques abordés dans ce Tome 1 :
 Dualité des langages : TypeScript pour la sécurité du front, Python pour la logique métier.
-Type Safety : Validation stricte à tous les niveaux.
-Modern UI : Esthétique "Dark Mode" native et responsive.
-Data Privacy : Tracking respectueux et stockage sécurisé.
+Type Safety : Validation stricte à tous les niveaux (Pydantic + TypeScript).
+Modern UI : Esthétique "Dark Mode" native et responsive avec Tailwind 4.
+Data Privacy : Tracking respectueux RGPD et stockage sécurisé.
+Framework Agentic : Architecture multi-agents extensible avec orchestration YAML.
+Infrastructure-as-Code : Docker Compose, Traefik, et déploiement reproductible.

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la docs/chapters/chap_*.qmd)"
+    ]
+  }
+}

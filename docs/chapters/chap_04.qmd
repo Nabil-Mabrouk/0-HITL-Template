@@ -69,6 +69,61 @@ def _store_visit(ip: str, path: str, user_id: int | None):
     # Persistance asynchrone...
 ```
 
+## API Agentic IA pour l'Automatisation
+
+Au-delà des services de base, 0-HITL intègre un framework complet d'agents IA permettant d'automatiser des tâches complexes. Cette API expose des services pré-configurés (News Scraper, Research Assistant, Crypto Analyst) via un système d'orchestration multi-agents.
+
+### Architecture du Framework Agentic
+
+Le système repose sur cinq composants :
+1. **Service Registry** : Gestion des services via configuration YAML
+2. **Tool Registry** : Catalogue d'outils disponibles pour les agents
+3. **Orchestrator** : Coordination des workflows multi-étapes
+4. **Memory System** : Persistance du contexte entre les exécutions
+5. **Guardrails** : Contrôles de sécurité et validation
+
+### Endpoints Principaux
+
+```python
+# Liste des services disponibles
+GET /api/agent-services/services
+
+# Exécution d'un service
+POST /api/agent-services/services/{service_slug}/execute
+Body: {"workflow_name": "daily_news_digest", "parameters": {...}}
+
+# Suivi des exécutions
+GET /api/agent-services/executions/{execution_id}
+```
+
+### Exemple de Service : News Scraper
+
+```yaml
+# backend/app/config/agent_services.yaml
+news_scraper:
+  enabled: true
+  name: "News Scraper"
+  description: "Scrape l'actualité et génère des tweets automatiquement"
+  agents:
+    - name: "news_fetcher"
+      model: "gpt-4"
+      tools: ["web_scraper", "rss_reader", "news_api"]
+    - name: "tweet_writer"
+      model: "claude-3-sonnet"
+      tools: ["tone_analyzer", "hashtag_generator"]
+  workflows:
+    - name: "daily_news_digest"
+      steps: ["fetch_news", "summarize", "generate_tweets"]
+```
+
+### Modèles de Données Associés
+
+Pour tracer les exécutions, le framework utilise des tables dédiées :
+- `service_executions` : Exécutions complètes
+- `service_execution_steps` : Étapes individuelles
+- `service_results` : Résultats (textes, fichiers, médias)
+- `user_service_preferences` : Préférences par utilisateur
+
 ---
 
-*Avec une API robuste et des services intelligents, notre backend est prêt. Dans la partie suivante, nous allons construire l'interface utilisateur pour interagir avec ce "cerveau" technique.*
+*Avec une API robuste comprenant à la fois des services de base (onboarding, tracking) et un framework avancé d'agents IA, notre backend est prêt. Dans la partie suivante, nous allons construire l'interface utilisateur pour interagir avec ce "cerveau" technique, y compris le dashboard agentic.*

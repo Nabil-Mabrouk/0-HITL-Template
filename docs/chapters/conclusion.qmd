@@ -4,7 +4,7 @@
 
 ## Ce que nous avons construit
 
-En douze chapitres, nous sommes partis d'une page blanche pour arriver à une plateforme d'apprentissage complète, sécurisée et pilotée par la donnée. Le projet **0-HITL** est désormais une réalité technique prête pour la production.
+En treize chapitres, nous sommes partis d'une page blanche pour arriver à une plateforme d'apprentissage complète, sécurisée et pilotée par la donnée, enrichie d'un framework d'agents IA pour l'automatisation intelligente. Le projet **0-HITL** est désormais une réalité technique prête pour la production.
 
 ### L'Architecture Finale
 
@@ -17,11 +17,13 @@ En douze chapitres, nous sommes partis d'une page blanche pour arriver à une pl
 |    FastAPI + SQLAlchemy + Alembic                |
 |    Moteur d'Onboarding JSON                      |
 |    Tracking GeoIP anonymisé                      |
+|    Framework Agentic IA (Multi-agents)           |
 |                                                  |
 |  Stack Frontend                                  |
 |    React 19 + Vite + Tailwind 4                  |
 |    i18n (FR/EN) + SEO dynamique                  |
 |    Visualisation Recharts + World Map            |
+|    Dashboard Agentic IA                          |
 |                                                  |
 |  Infrastructure                                  |
 |    Docker Multi-stage (Optimisé)                 |
@@ -40,7 +42,7 @@ Tout au long de ce parcours, sept règles d'or ont guidé chaque ligne de code :
 4.  **Respect de la Vie Privée :** Analytique puissante mais conforme au RGPD via le hashing des IPs.
 5.  **Internationalisation Native :** Une plateforme pensée pour une audience mondiale dès le premier jour.
 6.  **Optimisation SEO :** Visibilité maximale grâce aux sitemaps dynamiques et aux données structurées.
-7.  **Infrastructure-as-Code :** Déploiement reproductible et automatisé via Docker Compose.
+7.  **Infrastructure-as-Code et Automatisation Déclarative :** Déploiement reproductible via Docker Compose et configuration YAML des agents IA.
 
 ---
 
@@ -48,10 +50,11 @@ Tout au long de ce parcours, sept règles d'or ont guidé chaque ligne de code :
 
 Bien que robuste, la plateforme 0-HITL est une base extensible. Voici les pistes d'évolution prioritaires :
 
-*   **Intégration IA :** Utiliser les profils d'usage pour générer des parcours d'apprentissage personnalisés via LLM.
-*   **CI/CD :** Automatiser les tests et le déploiement via GitHub Actions.
-*   **Interactivité :** Ajouter des quiz et des exercices pratiques validés automatiquement côté backend.
-*   **Communauté :** Implémenter un système de commentaires et de forums sous chaque leçon.
+*   **Extension du Framework Agentic :** Ajouter de nouveaux services (Content Moderator, Code Reviewer, Data Analyst).
+*   **CI/CD Avancé :** Automatiser les tests et le déploiement via GitHub Actions avec validation des agents IA.
+*   **Interactivité Renforcée :** Quiz intelligents et exercices pratiques avec feedback automatique via agents.
+*   **Communauté et Collaboration :** Système de commentaires avec modération automatique et recommandations personnalisées.
+*   **Monitoring des Agents :** Dashboard de supervision des performances et de la qualité des sorties IA.
 
 ---
 
