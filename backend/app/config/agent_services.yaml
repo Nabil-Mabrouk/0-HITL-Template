@@ -1,0 +1,124 @@
+# Configuration des services agentic IA
+# Ce fichier définit les services disponibles, leurs agents et leurs workflows
+
+services:
+  # Service: News Scraper & Tweet Generator
+  news_scraper:
+    enabled: true
+    name: "News Scraper"
+    description: "Scrape l'actualité et génère des tweets automatiquement"
+    icon: "newspaper"
+    category: "content"
+    requires_auth: true
+    agents:
+      - name: "news_fetcher"
+        model: "gpt-4"
+        tools: ["web_scraper", "rss_reader", "news_api"]
+        system_prompt: "You are a news aggregation assistant. Fetch relevant news articles based on user topics and summarize them concisely."
+        temperature: 0.3
+      - name: "tweet_writer"
+        model: "claude-3-sonnet"
+        tools: ["tone_analyzer", "hashtag_generator", "schedule_post"]
+        system_prompt: "You are a social media content creator. Write engaging tweets based on news summaries, using appropriate hashtags and tone."
+        temperature: 0.7
+    workflows:
+      - name: "daily_news_digest"
+        description: "Récupère les actualités du jour et génère des tweets"
+        steps: ["fetch_news", "summarize", "generate_tweets"]
+        default_params:
+          topics: ["technology", "ai", "startups"]
+          num_articles: 5
+          language: "fr"
+      - name: "breaking_news_alert"
+        description: "Surveille les actualités en temps réel et alerte"
+        steps: ["monitor_keywords", "generate_alert", "post_immediately"]
+        default_params:
+          keywords: ["breaking", "urgent", "alert"]
+          check_interval: 300  # secondes
+
+  # Service: Research Assistant
+  research_agent:
+    enabled: true
+    name: "Research Assistant"
+    description: "Recherche bibliographique et rédaction de rapports académiques"
+    icon: "book-open"
+    category: "academic"
+    requires_auth: true
+    agents:
+      - name: "researcher"
+        model: "claude-3-opus"
+        tools: ["arxiv_api", "google_scholar", "pdf_parser", "web_search"]
+        system_prompt: "You are a research assistant. Find relevant academic papers, extract key insights, and synthesize information."
+        temperature: 0.2
+        max_tokens: 4000
+      - name: "writer"
+        model: "gpt-4"
+        tools: ["outline_generator", "citation_manager", "format_checker", "plagiarism_check"]
+        system_prompt: "You are an academic writer. Create well-structured reports with proper citations and academic tone."
+        temperature: 0.5
+    workflows:
+      - name: "literature_review"
+        description: "Effectue une revue de littérature sur un sujet donné"
+        steps: ["define_topic", "search_papers", "extract_key_points", "synthesize"]
+        default_params:
+          max_papers: 20
+          citation_style: "apa"
+      - name: "research_proposal"
+        description: "Génère une proposition de recherche structurée"
+        steps: ["brainstorm", "outline", "write_sections", "review"]
+        default_params:
+          sections: ["introduction", "literature_review", "methodology", "expected_results"]
+
+  # Service: Crypto Market Analyst
+  crypto_analyst:
+    enabled: true
+    name: "Crypto Analyst"
+    description: "Analyse des marchés crypto et génération de rapports multimédia"
+    icon: "bitcoin"
+    category: "finance"
+    requires_auth: true
+    agents:
+      - name: "data_analyst"
+        model: "gpt-4"
+        tools: ["crypto_api", "technical_indicators", "sentiment_analysis", "chart_generator"]
+        system_prompt: "You are a cryptocurrency market analyst. Analyze price data, identify trends, and provide insights."
+        temperature: 0.3
+      - name: "report_generator"
+        model: "claude-3-sonnet"
+        tools: ["text_to_speech", "video_generator", "chart_creator", "report_formatter"]
+        system_prompt: "You are a financial report generator. Create comprehensive reports with charts, audio summaries, and video presentations."
+        temperature: 0.5
+    workflows:
+      - name: "daily_market_report"
+        description: "Génère un rapport quotidien sur le marché crypto"
+        steps: ["fetch_market_data", "analyze_trends", "generate_report", "create_summary"]
+        default_params:
+          cryptocurrencies: ["BTC", "ETH", "SOL"]
+          timeframe: "24h"
+          include_audio: true
+      - name: "portfolio_analysis"
+        description: "Analyse un portefeuille crypto et propose des recommandations"
+        steps: ["fetch_portfolio", "calculate_performance", "identify_opportunities", "generate_recommendations"]
+        default_params:
+          risk_tolerance: "medium"
+          time_horizon: "long_term"
+
+  # Template pour nouveaux services (désactivé par défaut)
+  template_service:
+    enabled: false
+    name: "Template Service"
+    description: "Template pour créer de nouveaux services agentic IA"
+    icon: "settings"
+    category: "development"
+    requires_auth: true
+    agents:
+      - name: "example_agent"
+        model: "gpt-4"
+        tools: ["example_tool"]
+        system_prompt: "You are an example agent. Replace this with your agent's instructions."
+    workflows:
+      - name: "example_workflow"
+        description: "Example workflow template"
+        steps: ["step1", "step2", "step3"]
+        default_params:
+          example_param: "default_value"

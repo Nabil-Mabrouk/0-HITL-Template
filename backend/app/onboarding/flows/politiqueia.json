@@ -1,0 +1,55 @@
+{
+  "id": "politiqueia",
+  "title": "Votre profil citoyen",
+  "description": "Quelques questions pour personnaliser votre veille politique",
+  "steps": [
+    {
+      "id": "interest",
+      "type": "single_choice",
+      "question": "Quel aspect de la politique vous intéresse le plus ?",
+      "options": [
+        { "value": "local",      "label": "Politique locale et régionale" },
+        { "value": "national",   "label": "Politique nationale" },
+        { "value": "european",   "label": "Affaires européennes" },
+        { "value": "all",        "label": "Tout m'intéresse" }
+      ]
+    },
+    {
+      "id": "usage",
+      "type": "single_choice",
+      "question": "Comment comptez-vous utiliser politique-ia.fr ?",
+      "options": [
+        { "value": "citizen",    "label": "Citoyen informé" },
+        { "value": "journalist", "label": "Journaliste / chercheur" },
+        { "value": "activist",   "label": "Militant / engagé" },
+        { "value": "curious",    "label": "Simple curiosité" }
+      ]
+    }
+  ],
+  "scoring": {
+    "rules": [
+      {
+        "conditions": { "usage": "journalist" },
+        "result": { "profile": "pro", "score": 90,
+                    "role": "premium", "label": "Professionnel" }
+      },
+      {
+        "conditions": { "usage": "activist" },
+        "result": { "profile": "engaged", "score": 70,
+                    "role": "user", "label": "Citoyen Engagé" }
+      }
+    ],
+    "default": {
+      "profile": "citizen", "score": 50,
+      "role": "user", "label": "Citoyen Informé"
+    }
+  },
+  "result_screen": {
+    "title": "Profil : {{ label }}",
+    "description": "Nous personnalisons votre expérience en fonction de vos centres d'intérêt.",
+    "show_score": false,
+    "cta_primary":   "Rejoindre la plateforme",
+    "cta_secondary": null
+  },
+  "actions": ["store_profile", "assign_role"]
+}

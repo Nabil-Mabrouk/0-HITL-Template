@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "learn":         "Apprendre",
+    "profile":       "Profil",
+    "admin":         "Admin",
+    "login":         "Connexion",
+    "signup":        "S'inscrire",
+    "logout":        "Se déconnecter",
+    "usage_profile": "Profil d'usage"
+  },
+  "roles": {
+    "admin":   "Admin",
+    "premium": "Premium",
+    "user":    "Membre",
+    "waitlist":"Waitlist"
+  },
+  "actions": {
+    "save":    "Enregistrer",
+    "cancel":  "Annuler",
+    "delete":  "Supprimer",
+    "edit":    "Éditer",
+    "create":  "Créer",
+    "publish": "Publier",
+    "loading": "Chargement..."
+  },
+  "errors": {
+    "not_found":    "Page introuvable",
+    "unauthorized": "Accès non autorisé",
+    "server":       "Erreur serveur"
+  },
+  "landing": {
+    "construction": "En construction",
+    "subtitle": "L'automatisation intelligente arrive.\nSois parmi les premiers à le savoir.",
+    "footer": "© 2025 0-HITL.com — Tous droits réservés"
+  },
+  "waitlist": {
+    "placeholder": "ton@email.com",
+    "button": "Rejoindre la liste",
+    "success": "Merci ! Tu es sur la liste.",
+    "error": "Une erreur est survenue. Réessaie dans un instant."
+  }
+}

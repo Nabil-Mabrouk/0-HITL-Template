@@ -1,0 +1,69 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=https://api.0-hitl.com
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend-0hitl.rule=\
+         Host(`0-hitl.com`) || Host(`www.0-hitl.com`)"
+      - "traefik.http.routers.frontend-0hitl.entrypoints=websecure"
+      - "traefik.http.routers.frontend-0hitl.tls=true"
+      - "traefik.http.routers.frontend-0hitl.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend-0hitl.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend-0hitl.middlewares=\
+         security-headers@file"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env.prod
+    volumes:
+      - uploads_data:/app/uploads
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend-0hitl.rule=Host(`api.0-hitl.com`)"
+      - "traefik.http.routers.backend-0hitl.entrypoints=websecure"
+      - "traefik.http.routers.backend-0hitl.tls=true"
+      - "traefik.http.routers.backend-0hitl.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend-0hitl.loadbalancer.server.port=8000"
+      - "traefik.http.routers.backend-0hitl.middlewares=\
+         rate-limit@file,security-headers@file"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  db:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: alembic upgrade head
+
+volumes:
+  uploads_data:

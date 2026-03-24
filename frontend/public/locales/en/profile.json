@@ -1,0 +1,46 @@
+{
+  "title": "My Account",
+  "usage_profile": {
+    "title": "Usage Profile",
+    "loading": "Loading...",
+    "score": "score",
+    "answers_title": "Your answers",
+    "updated_at": "Updated on {{date}}",
+    "retake_btn": "Retake questionnaire",
+    "empty": {
+      "text": "You haven't completed the profile questionnaire yet.\nIt takes less than 2 minutes.",
+      "cta": "Discover my profile →"
+    },
+    "labels": {
+      "power_user": { "label": "AI Architect", "desc": "Expert in building autonomous agents" },
+      "enterprise": { "label": "Enterprise User", "desc": "Usage in corporate context" },
+      "builder": { "label": "AI Builder", "desc": "Builder of AI solutions" },
+      "explorer": { "label": "Explorer", "desc": "Discovering AI possibilities" },
+      "standard": { "label": "Standard User", "desc": "General platform usage" }
+    }
+  },
+  "info": {
+    "title": "Information",
+    "full_name": "Full Name",
+    "save_btn": "Save",
+    "success": "Profile updated ✓",
+    "error": "Error during update",
+    "updated_usage": "Usage profile updated ✓"
+  },
+  "password": {
+    "title": "Password",
+    "current": "Current Password",
+    "new": "New Password",
+    "submit_btn": "Update",
+    "success": "Password changed. Please log in again.",
+    "error": "Error"
+  },
+  "danger": {
+    "title": "Danger Zone",
+    "delete_btn": "Delete my account",
+    "confirm_text": "This action is irreversible. Confirm your password.",
+    "confirm_placeholder": "Your password to confirm",
+    "confirm_delete_btn": "Delete permanently",
+    "cancel_btn": "Cancel"
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "id": "0hitl",
+  "title": "Découvrez votre profil d'automatisation",
+  "description": "3 questions pour personnaliser votre expérience",
+  "steps": [
+    {
+      "id": "objective",
+      "type": "single_choice",
+      "question": "Quel est votre objectif principal avec l'IA ?",
+      "options": [
+        { "value": "automate", "label": "Automatiser des tâches répétitives" },
+        { "value": "analyze",  "label": "Analyser et exploiter des données" },
+        { "value": "build",    "label": "Construire des agents autonomes" },
+        { "value": "explore",  "label": "Explorer les possibilités de l'IA" }
+      ]
+    },
+    {
+      "id": "context",
+      "type": "single_choice",
+      "question": "Dans quel contexte utilisez-vous l'IA ?",
+      "options": [
+        { "value": "solo",       "label": "Projet personnel / freelance" },
+        { "value": "startup",    "label": "Startup (< 50 personnes)" },
+        { "value": "enterprise", "label": "Grande entreprise" },
+        { "value": "research",   "label": "Recherche / académique" }
+      ]
+    },
+    {
+      "id": "experience",
+      "type": "single_choice",
+      "question": "Quel est votre niveau d'expérience technique ?",
+      "options": [
+        { "value": "beginner",      "label": "Débutant — pas de code" },
+        { "value": "intermediate",  "label": "Intermédiaire — un peu de code" },
+        { "value": "advanced",      "label": "Avancé — développeur" },
+        { "value": "expert",        "label": "Expert — architecte / ML engineer" }
+      ]
+    }
+  ],
+  "scoring": {
+    "rules": [
+      {
+        "conditions": { "objective": "build", "experience": "expert" },
+        "result": { "profile": "power_user", "score": 100,
+                    "role": "premium", "label": "Architecte IA" }
+      },
+      {
+        "conditions": { "context": "enterprise" },
+        "result": { "profile": "enterprise", "score": 80,
+                    "role": "premium", "label": "Utilisateur Enterprise" }
+      },
+      {
+        "conditions": { "objective": "build" },
+        "result": { "profile": "builder", "score": 60,
+                    "role": "premium", "label": "Builder IA" }
+      },
+      {
+        "conditions": { "experience": "beginner" },
+        "result": { "profile": "explorer", "score": 20,
+                    "role": "user", "label": "Explorateur" }
+      }
+    ],
+    "default": {
+      "profile": "standard", "score": 40,
+      "role": "user", "label": "Utilisateur Standard"
+    }
+  },
+  "result_screen": {
+    "title": "Votre profil : {{ label }}",
+    "description": "Basé sur vos réponses, nous avons identifié votre profil d'usage.",
+    "show_score": true,
+    "cta_primary":   "Créer mon compte gratuit",
+    "cta_secondary": "En savoir plus"
+  },
+  "actions": ["store_profile", "assign_role", "send_welcome_email"]
+}

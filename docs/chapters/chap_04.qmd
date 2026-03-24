@@ -1,0 +1,74 @@
+---
+title: "L'API Core et les Services Intelligents"
+---
+
+## Introduction
+
+Une API moderne ne se contente pas de déplacer des données entre une base de données et un client. Dans le projet **0-HITL**, le backend joue un rôle actif via des services spécialisés : un moteur d'évaluation dynamique pour l'onboarding et un système de tracking analytique respectueux de la vie privée.
+
+## Validation des Données avec Pydantic
+
+FastAPI utilise **Pydantic** pour valider les données entrantes et sortantes. Cela nous permet de définir des contrats clairs entre le frontend et le backend.
+
+```python
+# app/schemas/onboarding.py
+from pydantic import BaseModel
+
+class OnboardingAnswer(BaseModel):
+    flow_id: str
+    answers: dict[str, str]
+
+class OnboardingResult(BaseModel):
+    title: str
+    description: str
+    score: int
+    profile: str
+    label: str
+```
+
+Grâce à ces schémas, FastAPI génère automatiquement la documentation Swagger et rejette toute requête mal formée avant même qu'elle n'atteigne notre logique métier.
+
+## Moteur d'Onboarding Dynamique
+
+Le cœur du profilage des utilisateurs de 0-HITL repose sur un moteur qui évalue des "flows" au format JSON. Cette approche permet de modifier les règles métier (le scoring) sans toucher au code Python.
+
+### Fonctionnement du Moteur :
+1.  **Chargement :** Lecture du fichier JSON correspondant au `flow_id`.
+2.  **Évaluation :** Comparaison des réponses de l'utilisateur avec les règles définies.
+3.  **Résultat :** Attribution d'un profil (ex: *Builder*, *Architect*) et d'un score.
+
+```python
+def evaluate_scoring(flow: dict, answers: dict[str, str]) -> dict:
+    rules = flow.get("scoring", {}).get("rules", [])
+    for rule in rules:
+        if all(answers.get(key) == val for key, val in rule["conditions"].items()):
+            return rule["result"]
+    return flow["scoring"]["default"]
+```
+
+## Tracking Analytique et GeoIP
+
+Pour piloter la plateforme par la donnée tout en restant conforme au **RGPD**, nous avons implémenté un `TrackingMiddleware`.
+
+### Un Tracking Non-Bloquant
+Il est crucial que l'enregistrement d'une visite ne ralentisse pas la réponse de l'API. Nous utilisons `asyncio.get_running_loop().run_in_executor` pour déléguer l'écriture en base de données à un thread séparé.
+
+### Géolocalisation Anonymisée
+Nous utilisons le service **MaxMind GeoLite2** pour convertir l'IP du visiteur en données géographiques (pays, ville). L'IP réelle n'est jamais stockée ; seul un hash salé (`ip_hash`) est conservé pour identifier les visiteurs uniques sans les tracer individuellement.
+
+```python
+def _store_visit(ip: str, path: str, user_id: int | None):
+    geo = geolocate(ip) # Service GeoIP local
+    visit = Visit(
+        ip_hash=hash_ip(ip),
+        country_code=geo["country_code"],
+        city=geo["city"],
+        path=path,
+        user_id=user_id
+    )
+    # Persistance asynchrone...
+```
+
+---
+
+*Avec une API robuste et des services intelligents, notre backend est prêt. Dans la partie suivante, nous allons construire l'interface utilisateur pour interagir avec ce "cerveau" technique.*

@@ -1,0 +1,24 @@
+{
+  "catalogue": {
+    "title":          "Apprendre",
+    "subtitle":       "Tutoriaux et guides pour maîtriser l'automatisation.",
+    "empty":          "Aucun contenu disponible pour le moment.",
+    "loading":        "Chargement...",
+    "free":           "Gratuit",
+    "premium":        "Premium",
+    "lessons":        "{{count}} leçon",
+    "lessons_plural": "{{count}} leçons"
+  },
+  "tutorial": {
+    "back":      "Catalogue",
+    "locked":    "Contenu réservé aux membres Premium",
+    "login_cta": "Se connecter"
+  },
+  "lesson": {
+    "prev":       "Précédent",
+    "next":       "Suivant",
+    "finish":     "Terminer le tutorial ✓",
+    "lesson_num": "Leçon {{num}}",
+    "no_content": "Contenu à venir..."
+  }
+}

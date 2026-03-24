@@ -1,0 +1,24 @@
+{
+  "catalogue": {
+    "title":          "Learn",
+    "subtitle":       "Tutorials and guides to master intelligent automation.",
+    "empty":          "No content available yet.",
+    "loading":        "Loading...",
+    "free":           "Free",
+    "premium":        "Premium",
+    "lessons":        "{{count}} lesson",
+    "lessons_plural": "{{count}} lessons"
+  },
+  "tutorial": {
+    "back":      "Catalogue",
+    "locked":    "Content reserved for Premium members",
+    "login_cta": "Sign in"
+  },
+  "lesson": {
+    "prev":       "Previous",
+    "next":       "Next",
+    "finish":     "Finish tutorial ✓",
+    "lesson_num": "Lesson {{num}}",
+    "no_content": "Content coming soon..."
+  }
+}

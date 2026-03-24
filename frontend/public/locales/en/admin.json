@@ -1,0 +1,177 @@
+{
+  "title": "Admin Dashboard",
+  "tabs": {
+    "users": "Users",
+    "waitlist": "Waitlist",
+    "analytics": "Analytics",
+    "content": "Content"
+  },
+  "stats": {
+    "total_users": "Users",
+    "active_users": "Active",
+    "verified_users": "Verified",
+    "premium_users": "Premium",
+    "waitlist_total": "Waitlist",
+    "waitlist_pending": "Pending"
+  },
+  "users": {
+    "search_placeholder": "Search by email or name...",
+    "filter_all_roles": "All roles",
+    "show_deleted": "Show deleted accounts",
+    "table": {
+      "id": "ID",
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "joined": "Joined",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "deleted": "deleted"
+    },
+    "actions": {
+      "suspend": "Suspend",
+      "activate": "Activate"
+    },
+    "empty": "No users found",
+    "count": "{{count}} user",
+    "count_plural": "{{count}} users"
+  },
+  "waitlist": {
+    "table": {
+      "id": "ID",
+      "email": "Email",
+      "joined": "Joined",
+      "status": "Status",
+      "invited_at": "Invited on",
+      "actions": "Actions"
+    },
+    "status": {
+      "invited": "Invited",
+      "pending": "Pending"
+    },
+    "actions": {
+      "invite": "Invite",
+      "reinvite": "Re-invite"
+    },
+    "empty": "No waitlist entries",
+    "count": "{{count}} entry",
+    "count_plural": "{{count}} entries"
+  },
+  "analytics": {
+    "filters": {
+      "all_visitors": "All visitors",
+      "anonymous": "Anonymous",
+      "users": "Members",
+      "premium": "Premium",
+      "admins": "Admins",
+      "days": "{{count}}d",
+      "refresh": "Refresh"
+    },
+    "total_visits": "{{count}} visit in total",
+    "total_visits_plural": "{{count}} visits in total",
+    "map_title": "Visitor Map",
+    "timeline_title": "Daily Visits",
+    "top_countries_title": "Top 10 Countries",
+    "no_data": "No data for this period"
+  },
+  "content": {
+    "tutorials": {
+      "title": "Tutorials",
+      "create_btn": "+ New Tutorial",
+      "import_btn": "Import ZIP",
+      "form": {
+        "title_placeholder": "Tutorial title",
+        "desc_placeholder": "Description (optional)",
+        "access_free": "Free (all members)",
+        "access_premium": "Premium only",
+        "publish_now": "Publish immediately",
+        "create_confirm": "Create",
+        "cancel": "Cancel"
+      },
+      "table": {
+        "title": "Title",
+        "cover": "Cover",
+        "lang": "Language",
+        "access": "Access",
+        "lessons": "Lessons",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "published": "Published",
+        "draft": "Draft",
+        "premium": "⭐ Premium",
+        "free": "Free"
+      },
+      "actions": {
+        "publish": "Publish",
+        "unpublish": "Unpublish",
+        "edit": "Edit",
+        "delete_confirm": "Delete this tutorial and all its lessons?"
+      },
+      "empty": "No tutorials — create one!",
+      "flash_created": "Tutorial created ✓"
+    },
+    "editor": {
+      "back": "← Dashboard",
+      "loading": "Loading...",
+      "saving": "Saving...",
+      "saved": "Saved ✓",
+      "save_btn": "Save",
+      "edit_btn": "Edit",
+      "preview_btn": "Preview",
+      "media_btn": "📁 Media",
+      "no_selection": "Select a lesson or create a new one",
+      "lessons_sidebar": {
+        "title": "Lessons",
+        "count": "{{count}} lesson",
+        "count_plural": "{{count}} lessons",
+        "new_btn": "+ New Lesson",
+        "new_placeholder": "Lesson title",
+        "new_confirm": "Create",
+        "draft_badge": "Draft"
+      },
+      "lesson_form": {
+        "title_placeholder": "Lesson title",
+        "mins_placeholder": "min",
+        "mins_title": "Duration in minutes",
+        "published": "Published",
+        "content_placeholder": "# Title\n\nMarkdown content...\n\n```python\nprint(\"Hello\")\n```\n\nhttps://youtu.be/VIDEO_ID"
+      },
+      "media": {
+        "title": "Media",
+        "upload_btn": "+ Upload",
+        "uploading": "Uploading...",
+        "filters": {
+          "all": "All",
+          "image": "🖼️",
+          "video": "🎬",
+          "audio": "🎵",
+          "document": "📄"
+        },
+        "empty": "No files — upload one!",
+        "empty_type": "No files of this type",
+        "item": {
+          "insert_btn": "Insert",
+          "insert_tooltip": "Insert into lesson",
+          "insert_error": "Select a lesson first",
+          "copy_tooltip": "Copy URL",
+          "delete_tooltip": "Delete",
+          "delete_confirm": "Delete \"{{filename}}\"?"
+        },
+        "footer": "{{count}} file",
+        "footer_plural": "{{count}} files",
+        "drag_drop": "Drag & drop supported"
+      }
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "prev": "Previous",
+    "next": "Next"
+  }
+}

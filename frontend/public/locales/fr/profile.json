@@ -1,0 +1,46 @@
+{
+  "title": "Mon compte",
+  "usage_profile": {
+    "title": "Profil d'usage",
+    "loading": "Chargement...",
+    "score": "score",
+    "answers_title": "Vos réponses",
+    "updated_at": "Mis à jour le {{date}}",
+    "retake_btn": "Refaire le questionnaire",
+    "empty": {
+      "text": "Vous n'avez pas encore complété le questionnaire de profil.\nCela prend moins de 2 minutes.",
+      "cta": "Découvrir mon profil →"
+    },
+    "labels": {
+      "power_user": { "label": "Architecte IA", "desc": "Expert en construction d'agents autonomes" },
+      "enterprise": { "label": "Utilisateur Enterprise", "desc": "Usage en contexte d'entreprise" },
+      "builder": { "label": "Builder IA", "desc": "Constructeur de solutions IA" },
+      "explorer": { "label": "Explorateur", "desc": "En découverte des possibilités de l'IA" },
+      "standard": { "label": "Utilisateur Standard", "desc": "Usage général de la plateforme" }
+    }
+  },
+  "info": {
+    "title": "Informations",
+    "full_name": "Nom complet",
+    "save_btn": "Enregistrer",
+    "success": "Profil mis à jour ✓",
+    "error": "Erreur lors de la mise à jour",
+    "updated_usage": "Profil d'usage mis à jour ✓"
+  },
+  "password": {
+    "title": "Mot de passe",
+    "current": "Mot de passe actuel",
+    "new": "Nouveau mot de passe",
+    "submit_btn": "Modifier",
+    "success": "Mot de passe modifié. Reconnecte-toi.",
+    "error": "Erreur"
+  },
+  "danger": {
+    "title": "Zone dangereuse",
+    "delete_btn": "Supprimer mon compte",
+    "confirm_text": "Cette action est irréversible. Confirme ton mot de passe.",
+    "confirm_placeholder": "Ton mot de passe pour confirmer",
+    "confirm_delete_btn": "Supprimer définitivement",
+    "cancel_btn": "Annuler"
+  }
+}

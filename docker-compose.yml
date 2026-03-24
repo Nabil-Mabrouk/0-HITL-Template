@@ -1,0 +1,70 @@
+services:
+
+  frontend:
+    container_name: ${PROJECT_NAME}_frontend
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    networks:
+      - proxy-net
+      - internal-net
+    depends_on:
+      - backend
+
+  backend:
+    container_name: ${PROJECT_NAME}_backend
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - SECRET_KEY=${SECRET_KEY}
+    volumes:
+      - uploads_data:/app/uploads
+    networks:
+      - proxy-net
+      - internal-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.3-alpine
+    container_name: ${PROJECT_NAME}_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - internal-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  migrate:
+    container_name: ${PROJECT_NAME}_migrate
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    networks:
+      - internal-net
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  db_data:
+  uploads_data:
+
+networks:
+  proxy-net:
+    external: true
+    name: proxy-net
+  internal-net:
+    driver: bridge
+    internal: true

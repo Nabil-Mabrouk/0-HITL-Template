@@ -1,0 +1,177 @@
+{
+  "title": "Dashboard Admin",
+  "tabs": {
+    "users": "Utilisateurs",
+    "waitlist": "Waitlist",
+    "analytics": "Analytics",
+    "content": "Contenu"
+  },
+  "stats": {
+    "total_users": "Utilisateurs",
+    "active_users": "Actifs",
+    "verified_users": "Vérifiés",
+    "premium_users": "Premium",
+    "waitlist_total": "Waitlist",
+    "waitlist_pending": "En attente"
+  },
+  "users": {
+    "search_placeholder": "Rechercher par email ou nom...",
+    "filter_all_roles": "Tous les rôles",
+    "show_deleted": "Afficher les comptes supprimés",
+    "table": {
+      "id": "ID",
+      "email": "Email",
+      "name": "Nom",
+      "role": "Rôle",
+      "status": "Statut",
+      "joined": "Inscription",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "deleted": "supprimé"
+    },
+    "actions": {
+      "suspend": "Suspendre",
+      "activate": "Réactiver"
+    },
+    "empty": "Aucun utilisateur trouvé",
+    "count": "{{count}} utilisateur",
+    "count_plural": "{{count}} utilisateurs"
+  },
+  "waitlist": {
+    "table": {
+      "id": "ID",
+      "email": "Email",
+      "joined": "Inscription",
+      "status": "Statut",
+      "invited_at": "Invité le",
+      "actions": "Actions"
+    },
+    "status": {
+      "invited": "Invité",
+      "pending": "En attente"
+    },
+    "actions": {
+      "invite": "Inviter",
+      "reinvite": "Ré-inviter"
+    },
+    "empty": "Aucune entrée dans la waitlist",
+    "count": "{{count}} entrée",
+    "count_plural": "{{count}} entrées"
+  },
+  "analytics": {
+    "filters": {
+      "all_visitors": "Tous les visiteurs",
+      "anonymous": "Anonymes",
+      "users": "Membres",
+      "premium": "Premium",
+      "admins": "Admins",
+      "days": "{{count}}j",
+      "refresh": "Actualiser"
+    },
+    "total_visits": "{{count}} visite au total",
+    "total_visits_plural": "{{count}} visites au total",
+    "map_title": "Carte des visiteurs",
+    "timeline_title": "Visites par jour",
+    "top_countries_title": "Top 10 pays",
+    "no_data": "Aucune donnée pour cette période"
+  },
+  "content": {
+    "tutorials": {
+      "title": "Tutoriaux",
+      "create_btn": "+ Nouveau tutorial",
+      "import_btn": "Importer ZIP",
+      "form": {
+        "title_placeholder": "Titre du tutorial",
+        "desc_placeholder": "Description (optionnel)",
+        "access_free": "Gratuit (tous les membres)",
+        "access_premium": "Premium uniquement",
+        "publish_now": "Publier immédiatement",
+        "create_confirm": "Créer",
+        "cancel": "Annuler"
+      },
+      "table": {
+        "title": "Titre",
+        "cover": "Cover",
+        "lang": "Langue",
+        "access": "Accès",
+        "lessons": "Leçons",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "status": {
+        "published": "Publié",
+        "draft": "Brouillon",
+        "premium": "⭐ Premium",
+        "free": "Gratuit"
+      },
+      "actions": {
+        "publish": "Publier",
+        "unpublish": "Dépublier",
+        "edit": "Éditer",
+        "delete_confirm": "Supprimer ce tutorial et toutes ses leçons ?"
+      },
+      "empty": "Aucun tutorial — créez-en un !",
+      "flash_created": "Tutorial créé ✓"
+    },
+    "editor": {
+      "back": "← Dashboard",
+      "loading": "Chargement...",
+      "saving": "Sauvegarde...",
+      "saved": "Sauvegardé ✓",
+      "save_btn": "Sauvegarder",
+      "edit_btn": "Éditer",
+      "preview_btn": "Aperçu",
+      "media_btn": "📁 Médias",
+      "no_selection": "Sélectionnez une leçon ou créez-en une nouvelle",
+      "lessons_sidebar": {
+        "title": "Leçons",
+        "count": "{{count}} leçon",
+        "count_plural": "{{count}} leçons",
+        "new_btn": "+ Nouvelle leçon",
+        "new_placeholder": "Titre de la leçon",
+        "new_confirm": "Créer",
+        "draft_badge": "Brouillon"
+      },
+      "lesson_form": {
+        "title_placeholder": "Titre de la leçon",
+        "mins_placeholder": "min",
+        "mins_title": "Durée en minutes",
+        "published": "Publié",
+        "content_placeholder": "# Titre\n\nContenu en Markdown...\n\n```python\nprint(\"Hello\")\n```\n\nhttps://youtu.be/VIDEO_ID"
+      },
+      "media": {
+        "title": "Médias",
+        "upload_btn": "+ Upload",
+        "uploading": "Upload...",
+        "filters": {
+          "all": "Tous",
+          "image": "🖼️",
+          "video": "🎬",
+          "audio": "🎵",
+          "document": "📄"
+        },
+        "empty": "Aucun fichier — uploadez-en un !",
+        "empty_type": "Aucun fichier de ce type",
+        "item": {
+          "insert_btn": "Insérer",
+          "insert_tooltip": "Insérer dans la leçon",
+          "insert_error": "Sélectionnez une leçon d'abord",
+          "copy_tooltip": "Copier l'URL",
+          "delete_tooltip": "Supprimer",
+          "delete_confirm": "Supprimer \"{{filename}}\" ?"
+        },
+        "footer": "{{count}} fichier",
+        "footer_plural": "{{count}} fichiers",
+        "drag_drop": "Drag & drop supporté"
+      }
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "prev": "Précédent",
+    "next": "Suivant"
+  }
+}

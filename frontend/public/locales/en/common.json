@@ -1,0 +1,42 @@
+{
+  "nav": {
+    "learn":         "Learn",
+    "profile":       "Profile",
+    "admin":         "Admin",
+    "login":         "Sign in",
+    "signup":        "Sign up",
+    "logout":        "Sign out",
+    "usage_profile": "Usage profile"
+  },
+  "roles": {
+    "admin":   "Admin",
+    "premium": "Premium",
+    "user":    "Member",
+    "waitlist":"Waitlist"
+  },
+  "actions": {
+    "save":    "Save",
+    "cancel":  "Cancel",
+    "delete":  "Delete",
+    "edit":    "Edit",
+    "create":  "Create",
+    "publish": "Publish",
+    "loading": "Loading..."
+  },
+  "errors": {
+    "not_found":    "Page not found",
+    "unauthorized": "Unauthorized",
+    "server":       "Server error"
+  },
+  "landing": {
+    "construction": "Under Construction",
+    "subtitle": "Intelligent automation is coming.\nBe among the first to know.",
+    "footer": "© 2025 0-HITL.com — All rights reserved"
+  },
+  "waitlist": {
+    "placeholder": "your@email.com",
+    "button": "Join the list",
+    "success": "Thank you! You're on the list.",
+    "error": "An error occurred. Please try again in a moment."
+  }
+}
