@@ -1,6 +1,4 @@
----
-title: "Modélisation des Données avec SQLAlchemy"
----
+# Modélisation des Données avec SQLAlchemy
 
 ## Introduction à la Modélisation
 

@@ -1,10 +1,6 @@
----
-title: "Configuration du Serveur de Production"
----
+# Configuration du Serveur de Production
 
 ## Ubuntu Server 24.04 — Sécurisation, Docker et Accès SSH
-
-
 
 ## Prérequis et Contexte
 

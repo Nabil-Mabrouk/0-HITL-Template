@@ -1,6 +1,4 @@
----
-title: "Dashboard Admin et Analytics"
----
+# Dashboard Admin et Analytics
 
 ## Introduction
 

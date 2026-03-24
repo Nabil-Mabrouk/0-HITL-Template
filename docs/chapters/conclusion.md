@@ -1,7 +1,5 @@
 # Conclusion : Bilan et Perspectives du Projet 0-HITL
 
----
-
 ## Ce que nous avons construit
 
 En treize chapitres, nous sommes partis d'une page blanche pour arriver à une plateforme d'apprentissage complète, sécurisée et pilotée par la donnée, enrichie d'un framework d'agents IA pour l'automatisation intelligente. Le projet **0-HITL** est désormais une réalité technique prête pour la production.

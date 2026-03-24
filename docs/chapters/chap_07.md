@@ -1,6 +1,4 @@
----
-title: "L'Université Virtuelle : Catalogue et Contenu"
----
+# L'Université Virtuelle : Catalogue et Contenu
 
 ## Introduction
 

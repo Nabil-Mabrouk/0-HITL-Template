@@ -1,6 +1,4 @@
----
-title: "Le Frontend Moderne avec React et Vite"
----
+# Le Frontend Moderne avec React et Vite
 
 ## Pourquoi cette Stack ?
 

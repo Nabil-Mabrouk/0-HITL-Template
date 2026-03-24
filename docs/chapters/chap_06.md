@@ -1,6 +1,4 @@
----
-title: "Authentification et Internationalisation"
----
+# Authentification et Internationalisation
 
 ## Gestion Globale de l'État : AuthContext
 

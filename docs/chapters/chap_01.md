@@ -1,6 +1,4 @@
----
-title: "Architecture Conteneurisée Professionnelle"
----
+# Architecture Conteneurisée Professionnelle
 
 ## Philosophie de l'Architecture
 Une architecture conteneurisée professionnelle repose sur trois principes fondamentaux pour garantir la fiabilité et la scalabilité du projet **0-HITL**.

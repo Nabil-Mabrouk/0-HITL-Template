@@ -1,6 +1,4 @@
----
-title: "Initialisation du Backend avec FastAPI"
----
+# Initialisation du Backend avec FastAPI
 
 ## Pourquoi FastAPI ?
 

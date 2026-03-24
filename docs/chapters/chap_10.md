@@ -1,6 +1,4 @@
----
-title: "SEO et Optimisation pour la Visibilité"
----
+# SEO et Optimisation pour la Visibilité
 
 ## Introduction
 

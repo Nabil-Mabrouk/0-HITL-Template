@@ -1,6 +1,4 @@
----
-title: "Framework Agentic IA et Services Intelligents"
----
+# Framework Agentic IA et Services Intelligents
 
 ## Introduction au Framework Multi-Agents
 

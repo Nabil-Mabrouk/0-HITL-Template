@@ -1,6 +1,4 @@
----
-title: "L'API Core et les Services Intelligents"
----
+# L'API Core et les Services Intelligents
 
 ## Introduction
 

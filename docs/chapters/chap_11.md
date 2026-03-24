@@ -1,6 +1,4 @@
----
-title: "Dockerisation Avancée pour la Production"
----
+# Dockerisation Avancée pour la Production
 
 ## Introduction
 
