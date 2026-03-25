@@ -24,10 +24,12 @@ export default function LessonPage() {
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     Promise.all([
-      fetch(`${API}/api/content/tutorials/${slug}/${lessonSlug}`)
+      fetch(`${API}/api/content/tutorials/${slug}/${lessonSlug}`, { headers })
         .then(r => r.ok ? r.json() : null),
-      fetch(`${API}/api/content/tutorials/${slug}`)
+      fetch(`${API}/api/content/tutorials/${slug}`, { headers })
         .then(r => r.ok ? r.json() : null),
     ]).then(([lessonData, tutorialData]) => {
       setLesson(lessonData);

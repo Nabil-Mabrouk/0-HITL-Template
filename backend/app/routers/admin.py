@@ -71,66 +71,6 @@ async def get_stats(
 
 
 @router.get(
-    "/users",
-    response_model=UserListResponse,
-    summary="Lister les utilisateurs",
-    description="Liste paginée avec filtres par rôle et recherche textuelle.",
-)
-async def list_users(
-    page: int = Query(1, ge=1, description="Numéro de page"),
-    per_page: int = Query(20, ge=1, le=100, description="Éléments par page"),
-    search: str = Query("", description="Recherche dans email et nom"),
-    role: UserRole | None = Query(None, description="Filtrer par rôle"),
-    db: Session = Depends(get_db),
-    _: User = Depends(require_admin),
-) -> UserListResponse:
-    """
-    Liste paginée des utilisateurs avec filtres.
-    
-    Args:
-        page: Page courante (commence à 1)
-        per_page: Nombre d'éléments par page (max 100)
-        search: Filtre textuel sur email et full_name (insensible à la casse)
-        role: Filtre par rôle spécifique
-        db: Session de base de données
-        _: Administrateur authentifié
-        
-    Returns:
-        UserListResponse: Liste paginée avec métadonnées de pagination
-    """
-    query = db.query(User)
-    
-    # Filtre de recherche textuelle (email ou nom)
-    if search:
-        search_pattern = f"%{search}%"
-        query = query.filter(
-            User.email.ilike(search_pattern) | User.full_name.ilike(search_pattern)
-        )
-    
-    # Filtre par rôle
-    if role:
-        query = query.filter(User.role == role)
-
-    # Comptage total pour la pagination
-    total = query.count()
-    
-    # Pagination et tri par date de création décroissante
-    users = (
-        query.order_by(desc(User.created_at))
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-        .all()
-    )
-
-    return {
-        "total": total,
-        "page": page,
-        "per_page": per_page,
-        "users": users,
-    }
-
-
-@router.get(
     "/waitlist",
     response_model=WaitlistListResponse,
     summary="Lister la waitlist",
