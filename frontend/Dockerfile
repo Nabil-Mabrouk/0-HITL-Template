@@ -27,7 +27,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/package.json ./
-RUN npm install -g serve
+RUN npm install -g serve@14
 USER appuser
 EXPOSE 3000
 CMD ["serve", "-s", "dist", "-l", "3000"]

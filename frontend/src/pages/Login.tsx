@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
+import SEO from "../components/SEO";
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -38,6 +39,8 @@ export default function Login() {
   }
 
   return (
+    <>
+    <SEO title="Connexion" noindex={true} />
     <div className="min-h-screen bg-black text-white flex items-center
                     justify-center px-4">
       <div className="w-full max-w-sm">
@@ -89,5 +92,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   );
 }

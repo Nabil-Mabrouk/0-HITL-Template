@@ -75,10 +75,46 @@ async def robots():
     if not settings.robots_allow_indexing:
         content = "User-agent: *\nDisallow: /\n"
     else:
-        content = f"""User-agent: *
-Allow: /
-{disallow}
+        content = f"User-agent: *\n{disallow}\n\nSitemap: {base}/sitemap.xml\n"
 
-Sitemap: {base}/sitemap.xml
+    return Response(content=content, media_type="text/plain")
+
+
+@router.get("/llms.txt", response_class=Response)
+async def llms(db: Session = Depends(get_db)):
+    """
+    LLM crawler guidance file (https://llmstxt.org).
+    Lists public content, restricted areas, and do-not-index paths.
+    """
+    base     = settings.frontend_url
+    tutorials = db.query(Tutorial)\
+                  .filter(Tutorial.is_published == True,
+                          Tutorial.access_role == "user").all()
+
+    tutorial_lines = "\n".join(
+        f"- [{t.title}]({base}/learn/{t.slug}): {t.description or ''}"
+        for t in tutorials
+    )
+
+    content = f"""# llms.txt — AI crawler guidance
+
+> {settings.project_name}
+
+## Public content
+
+- [Home]({base}/): Platform overview
+- [Learn]({base}/learn): Tutorial catalogue
+{tutorial_lines}
+
+## Restricted content (requires authentication)
+
+- [Profile]({base}/profile): User account
+- [Admin]({base}/admin): Administration
+
+## Do not index
+
+- {base}/api/*
+- {base}/admin/*
+- {base}/profile/*
 """
     return Response(content=content, media_type="text/plain")

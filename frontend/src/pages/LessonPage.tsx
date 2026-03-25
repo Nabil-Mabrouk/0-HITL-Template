@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import MarkdownRenderer from "../components/MarkdownRenderer";
+import SEO from "../components/SEO";
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -60,6 +61,15 @@ export default function LessonPage() {
     ? publishedLessons[currentIdx + 1] : null;
 
   return (
+    <>
+    <SEO
+      title={`${lesson.title} — ${tutorial?.title ?? ""}`}
+      description={lesson.content
+        ? lesson.content.replace(/[#*`>\-\[\]]/g, "").slice(0, 155).trim()
+        : `Leçon ${lesson.order + 1} du tutorial ${tutorial?.title ?? ""}`}
+      url={`/learn/${slug}/${lessonSlug}`}
+      type="article"
+    />
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-4xl mx-auto px-6 py-16">
 
@@ -140,5 +150,6 @@ export default function LessonPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

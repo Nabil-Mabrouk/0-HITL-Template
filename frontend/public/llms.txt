@@ -1,0 +1,26 @@
+# llms.txt — AI crawler guidance
+# See https://llmstxt.org for the specification
+
+> 0-HITL
+
+Zero Human In The Loop — an agentic AI automation platform.
+
+## Public content
+
+- [Home](/): Platform overview and waitlist
+- [Learn](/learn): Tutorial catalogue — AI, automation, and agentic systems
+
+## Restricted content (requires authentication)
+
+- [Profile](/profile): User account management
+- [Admin](/admin): Platform administration
+
+## Do not index
+
+- /api/*
+- /admin/*
+- /profile/*
+- /login
+- /register
+- /reset-password
+- /verify-email
