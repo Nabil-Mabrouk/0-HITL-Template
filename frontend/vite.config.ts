@@ -11,6 +11,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    sourcemap: false,   // Never expose source maps in production
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,
