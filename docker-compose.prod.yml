@@ -45,7 +45,7 @@ services:
       - "traefik.http.routers.backend-0hitl.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend-0hitl.loadbalancer.server.port=8000"
       - "traefik.http.routers.backend-0hitl.middlewares=\
-         rate-limit@file,security-headers@file"
+         rate-limit-api@file,security-headers@file"
     security_opt:
       - no-new-privileges:true
     cap_drop:
