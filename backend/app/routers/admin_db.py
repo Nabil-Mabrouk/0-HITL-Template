@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import require_admin
 from ..auth.security import hash_password
 from ..config import get_settings
-from ..database import get_db, SessionLocal
+from ..database import get_db, SessionLocal, engine
 from ..email.service import send_verification_email
 from ..auth.security import create_email_token
 from ..models import (
@@ -188,9 +188,9 @@ async def vacuum_db(
     Récupère l'espace disque et met à jour les statistiques.
     """
     try:
-        # VACUUM ne peut pas s'exécuter dans une transaction
-        db.execute(text("COMMIT"))
-        db.execute(text("VACUUM ANALYZE"))
+        # VACUUM cannot run inside a transaction; use AUTOCOMMIT isolation
+        with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as conn:
+            conn.execute(text("VACUUM ANALYZE"))
         logger.info(f"db.vacuum.completed by={admin.email}")
         return {"message": "VACUUM ANALYZE exécuté avec succès"}
     except Exception as e:

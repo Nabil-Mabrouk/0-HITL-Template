@@ -23,11 +23,19 @@ ALLOWED_MEDIA_TYPES = {
 }
 
 def make_slug(text: str) -> str:
-    """Génère un slug simple à partir d'un texte."""
-    text = text.lower()
-    text = re.sub(r"[^\w\s-]", "", text)
-    text = re.sub(r"[\s_-]+", "-", text)
-    return text.strip("-")
+    """Génère un slug depuis un texte."""
+    if not text:
+        return ""
+    slug = text.lower().strip()
+    slug = re.sub(r"[àáâãäå]", "a", slug)
+    slug = re.sub(r"[èéêë]",   "e", slug)
+    slug = re.sub(r"[ìíîï]",   "i", slug)
+    slug = re.sub(r"[òóôõö]",  "o", slug)
+    slug = re.sub(r"[ùúûü]",   "u", slug)
+    slug = re.sub(r"[ç]",      "c", slug)
+    slug = re.sub(r"[^a-z0-9\s-]", "", slug)
+    slug = re.sub(r"[\s-]+", "-", slug).strip("-")
+    return slug
 
 from sqlalchemy.orm import Session
 from sqlalchemy import desc

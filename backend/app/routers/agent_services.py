@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
 from app.database import get_db
-from app.models import User
+from app.models import User, UserRole
 from app.agents.service_registry import get_service_registry, AgentServiceConfig
 from app.agents.core.orchestrator import AgentOrchestrator, WorkflowExecution
 from app.agents.core.tool_registry import get_tool_registry
@@ -238,7 +238,7 @@ async def get_execution_status(
         )
 
     # Vérifier les permissions
-    if execution.user_id != current_user.id and not current_user.is_admin():
+    if execution.user_id != current_user.id and not current_user.has_role(UserRole.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this execution"
@@ -354,7 +354,7 @@ async def cancel_execution(
         )
 
     # Vérifier les permissions
-    if execution.user_id != current_user.id and not current_user.is_admin():
+    if execution.user_id != current_user.id and not current_user.has_role(UserRole.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to cancel this execution"

@@ -7,6 +7,7 @@ la coordination des handoffs, et la gestion du contexte partagé.
 
 import asyncio
 import logging
+import time
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
@@ -99,7 +100,7 @@ class AgentOrchestrator:
             user_id=user_id,
             steps=steps,
             context=context or {},
-            created_at=asyncio.get_event_loop().time()
+            created_at=time.time()
         )
 
         # Enregistrer l'exécution
@@ -121,7 +122,7 @@ class AgentOrchestrator:
                     break
 
                 step.status = ExecutionStatus.RUNNING
-                start_time = asyncio.get_event_loop().time()
+                start_time = time.time()
 
                 try:
                     # Exécuter l'étape
@@ -146,7 +147,7 @@ class AgentOrchestrator:
                     break
 
                 finally:
-                    step.execution_time = asyncio.get_event_loop().time() - start_time
+                    step.execution_time = time.time() - start_time
 
             if execution.status == ExecutionStatus.RUNNING:
                 execution.status = ExecutionStatus.COMPLETED

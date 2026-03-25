@@ -324,9 +324,7 @@ export default function Learn() {
     if (sortBy === "popular") {
       list.sort((a, b) => (b.views_count ?? 0) - (a.views_count ?? 0));
     } else {
-      list.sort((a, b) =>
-        new Date(b.id).getTime() - new Date(a.id).getTime()
-      );
+      list.sort((a, b) => b.id - a.id);
     }
 
     return list;

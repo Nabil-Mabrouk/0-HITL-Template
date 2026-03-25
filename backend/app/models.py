@@ -10,13 +10,12 @@ Ce module définit les entités principales :
 
 import enum
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, Enum, 
-    ForeignKey, Text, Float
+    Column, Integer, String, Boolean, DateTime, Enum,
+    ForeignKey, Text, Float, JSON, UniqueConstraint
 )
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 from .database import Base
-from sqlalchemy import JSON
 
 class UserRole(str, enum.Enum):
     """
@@ -531,7 +530,7 @@ class ServiceResult(Base):
     file_url = Column(String, nullable=True)         # URL publique du fichier
     file_size = Column(Integer, nullable=True)       # Taille en octets
     mime_type = Column(String, nullable=True)        # Type MIME
-    metadata = Column(JSON, nullable=True)           # Métadonnées supplémentaires
+    result_metadata = Column(JSON, nullable=True)    # Métadonnées supplémentaires
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relations
