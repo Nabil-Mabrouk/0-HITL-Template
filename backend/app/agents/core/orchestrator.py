@@ -42,8 +42,8 @@ class WorkflowExecution:
     user_id: int
     steps: List[ExecutionStep]
     context: Dict[str, Any]  # Contexte partagé entre les étapes
-    status: ExecutionStatus = ExecutionStatus.PENDING
     created_at: float
+    status: ExecutionStatus = ExecutionStatus.PENDING
     completed_at: Optional[float] = None
     result: Optional[Dict[str, Any]] = None
 
