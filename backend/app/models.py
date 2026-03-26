@@ -565,12 +565,14 @@ class UserServicePreference(Base):
     user = relationship("User", backref="service_preferences")
 
 
+# ==================== Security Events ====================
+
 class SecurityEventType(str, enum.Enum):
-    path_scan         = "path_scan"
-    brute_force       = "brute_force"
-    injection_attempt = "injection_attempt"
-    scanner_detected  = "scanner_detected"
-    rate_limit        = "rate_limit"
+    path_scan          = "path_scan"
+    brute_force        = "brute_force"
+    injection_attempt  = "injection_attempt"
+    scanner_detected   = "scanner_detected"
+    rate_limit         = "rate_limit"
     suspicious_payload = "suspicious_payload"
 
 class SecuritySeverity(str, enum.Enum):
@@ -588,18 +590,112 @@ class SecurityEvent(Base):
     """
     __tablename__ = "security_events"
 
-    id          = Column(Integer, primary_key=True, index=True)
-    event_type  = Column(String, nullable=False, index=True)
-    severity    = Column(String, nullable=False, index=True)
-    ip_address  = Column(String, nullable=True,  index=True)
-    path        = Column(String, nullable=True)
-    method      = Column(String, nullable=True)
-    user_agent  = Column(String, nullable=True)
-    details     = Column(JSON, nullable=True)
-    user_id     = Column(Integer, ForeignKey("users.id"), nullable=True)
-    created_at  = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+    id         = Column(Integer, primary_key=True, index=True)
+    event_type = Column(String, nullable=False, index=True)
+    severity   = Column(String, nullable=False, index=True)
+    ip_address = Column(String, nullable=True,  index=True)
+    path       = Column(String, nullable=True)
+    method     = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    details    = Column(JSON, nullable=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
 
     user = relationship("User", backref="security_events", foreign_keys=[user_id])
 
 
-# Après le champ lang
+# ==================== Monetization ====================
+
+class Product(Base):
+    """
+    Produit numérique vendable en une seule fois (e-book, template, accès, …).
+    Activé via MONETIZATION_SHOP=true.
+
+    file_path pointe vers le fichier sur le serveur (servi de façon sécurisée).
+    stripe_price_id est le Price ID Stripe (price_…).
+    """
+    __tablename__ = "products"
+
+    id              = Column(Integer, primary_key=True, index=True)
+    name            = Column(String, nullable=False)
+    slug            = Column(String, unique=True, nullable=False, index=True)
+    description     = Column(Text, nullable=True)
+    price_cents     = Column(Integer, nullable=False)          # Prix en centimes (ex: 2900 = 29 €)
+    currency        = Column(String(3), default="eur", nullable=False)
+    stripe_price_id = Column(String, nullable=True)           # price_…
+    file_path       = Column(String, nullable=True)           # Chemin fichier local
+    cover_image     = Column(String, nullable=True)           # URL image de couverture
+    is_active       = Column(Boolean, default=True, nullable=False)
+    created_at      = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at      = Column(DateTime(timezone=True), server_default=func.now(),
+                             onupdate=func.now())
+
+    purchases = relationship("Purchase", back_populates="product",
+                             cascade="all, delete-orphan")
+
+
+class Purchase(Base):
+    """
+    Achat unique d'un produit numérique.
+
+    download_token est un token aléatoire (URL signée) valable download_link_expire_hours.
+    max_downloads limite le nombre de téléchargements autorisés.
+    fulfilled_at est défini quand Stripe confirme le paiement (webhook checkout.session.completed).
+    """
+    __tablename__ = "purchases"
+
+    id                    = Column(Integer, primary_key=True, index=True)
+    user_id               = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"),
+                                   nullable=True, index=True)
+    product_id            = Column(Integer, ForeignKey("products.id", ondelete="SET NULL"),
+                                   nullable=True, index=True)
+    email                 = Column(String, nullable=False)
+    stripe_session_id     = Column(String, unique=True, nullable=True, index=True)
+    stripe_payment_intent = Column(String, nullable=True)
+    amount_paid_cents     = Column(Integer, nullable=True)
+    currency              = Column(String(3), nullable=True)
+    download_token        = Column(String, unique=True, nullable=True, index=True)
+    download_count        = Column(Integer, default=0, nullable=False)
+    max_downloads         = Column(Integer, default=5, nullable=False)
+    token_expires_at      = Column(DateTime(timezone=True), nullable=True)
+    fulfilled_at          = Column(DateTime(timezone=True), nullable=True)
+    created_at            = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user    = relationship("User", backref="purchases", foreign_keys=[user_id])
+    product = relationship("Product", back_populates="purchases")
+
+
+class SubscriptionStatus(str, enum.Enum):
+    trialing  = "trialing"
+    active    = "active"
+    past_due  = "past_due"
+    cancelled = "cancelled"
+    unpaid    = "unpaid"
+
+
+class Subscription(Base):
+    """
+    Abonnement Stripe d'un utilisateur.
+
+    Quand status=active ou trialing, l'utilisateur a le rôle premium.
+    Quand status=cancelled/past_due/unpaid, le rôle est rétrogradé vers user.
+    Géré entièrement via les webhooks Stripe.
+    """
+    __tablename__ = "subscriptions"
+
+    id                     = Column(Integer, primary_key=True, index=True)
+    user_id                = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"),
+                                    nullable=False, unique=True, index=True)
+    stripe_subscription_id = Column(String, unique=True, nullable=False, index=True)
+    stripe_customer_id     = Column(String, nullable=False, index=True)
+    stripe_price_id        = Column(String, nullable=True)
+    status                 = Column(Enum(SubscriptionStatus),
+                                    default=SubscriptionStatus.active, nullable=False)
+    current_period_end     = Column(DateTime(timezone=True), nullable=True)
+    trial_end              = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at           = Column(DateTime(timezone=True), nullable=True)
+    created_at             = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at             = Column(DateTime(timezone=True), server_default=func.now(),
+                                    onupdate=func.now())
+
+    user = relationship("User", backref=backref("subscription", uselist=False))

@@ -4,12 +4,11 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./lib/ThemeProvider";
 import { usePageTracking } from "./hooks/usePageTracking";
 import Navbar from "./components/Navbar";
 import App from "./App";
 import "./index.css";
-
-document.documentElement.classList.add("dark");
 
 function AppWithTracking() {
   usePageTracking();
@@ -27,9 +26,11 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <AppWithTracking />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppWithTracking />
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </HelmetProvider>
   </StrictMode>

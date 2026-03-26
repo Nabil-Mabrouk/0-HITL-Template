@@ -26,6 +26,11 @@ import Learn          from "./pages/Learn";
 import TutorialPage   from "./pages/TutorialPage";
 import LessonPage     from "./pages/LessonPage";
 
+// Monétisation
+import Shop        from "./pages/Shop";
+import ShopSuccess from "./pages/ShopSuccess";
+import Premium     from "./pages/Premium";
+
 // ── Guards ─────────────────────────────────────────────────────────────────
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -106,6 +111,11 @@ export default function App() {
       <Route path="/learn"                   element={<Learn />} />
       <Route path="/learn/:slug"             element={<TutorialPage />} />
       <Route path="/learn/:slug/:lessonSlug" element={<LessonPage />} />
+
+      {/* ── Monétisation ────────────────────────────────────────────── */}
+      <Route path="/shop"         element={<Shop />} />
+      <Route path="/shop/success" element={<ShopSuccess />} />
+      <Route path="/premium"      element={<Premium />} />
 
       {/* ── Protégé ─────────────────────────────────────────────────── */}
       <Route path="/profile" element={

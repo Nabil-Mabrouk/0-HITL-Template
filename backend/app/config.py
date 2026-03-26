@@ -139,6 +139,24 @@ class Settings(BaseSettings):
     admin_password:  str = ""
     admin_full_name: str = "Admin"
 
+    # ==================== Monetization Configuration ====================
+    # Feature flags — activate independently
+    monetization_shop:         bool = False  # One-time digital product sales
+    monetization_subscription: bool = False  # Stripe subscription → premium role
+
+    # Trial period for new subscribers (0 = no trial)
+    monetization_trial_days: int = 0
+
+    # Stripe keys (required when monetization is active)
+    stripe_secret_key:    str = ""  # sk_live_… or sk_test_…
+    stripe_public_key:    str = ""  # pk_live_… or pk_test_…
+    stripe_webhook_secret: str = ""  # whsec_…
+
+    # Download link expiry in hours (shop only)
+    download_link_expire_hours: int = 48
+    # Max download attempts per purchase
+    download_max_attempts: int = 5
+
     class Config:
         """Configuration interne de Pydantic Settings."""
         

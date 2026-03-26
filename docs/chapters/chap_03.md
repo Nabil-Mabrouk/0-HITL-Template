@@ -86,6 +86,78 @@ class Visit(Base):
     user_role = Column(String) # Contexte au moment de la visite
 ```
 
+### 5. Surveillance de la Sécurité
+
+Le modèle `SecurityEvent` enregistre chaque tentative d'intrusion détectée par le `SecurityMiddleware`. Les événements sont consultables dans le Dashboard Admin.
+
+```python
+class SecurityEvent(Base):
+    __tablename__ = "security_events"
+    event_type  = Column(String, index=True)  # path_scan, injection_attempt…
+    severity    = Column(String, index=True)  # low, medium, high, critical
+    ip_address  = Column(String, index=True)
+    path        = Column(String)
+    user_agent  = Column(String)
+    details     = Column(JSON)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+```
+
+### 6. Monétisation — Boutique et Abonnements
+
+Deux modèles gèrent la monétisation, activables indépendamment via les variables d'environnement `MONETIZATION_SHOP` et `MONETIZATION_SUBSCRIPTION`.
+
+#### Produits et Achats (`MONETIZATION_SHOP`)
+
+```python
+class Product(Base):
+    """Produit numérique vendable en une seule fois."""
+    __tablename__ = "products"
+    name            = Column(String, nullable=False)
+    slug            = Column(String, unique=True, index=True)
+    price_cents     = Column(Integer, nullable=False)  # 2900 = 29 €
+    stripe_price_id = Column(String)   # price_… depuis Stripe Dashboard
+    file_path       = Column(String)   # fichier servi de façon sécurisée
+    is_active       = Column(Boolean, default=True)
+
+class Purchase(Base):
+    """Achat unique — lié à un Product et optionnellement à un User."""
+    __tablename__ = "purchases"
+    user_id               = Column(Integer, ForeignKey("users.id"))  # nullable (guest)
+    product_id            = Column(Integer, ForeignKey("products.id"))
+    email                 = Column(String, nullable=False)
+    stripe_session_id     = Column(String, unique=True)   # cs_…
+    download_token        = Column(String, unique=True)   # token URL sécurisé
+    download_count        = Column(Integer, default=0)
+    max_downloads         = Column(Integer, default=5)
+    token_expires_at      = Column(DateTime(timezone=True))
+    fulfilled_at          = Column(DateTime(timezone=True))  # défini par le webhook
+```
+
+**Flux de téléchargement sécurisé :**
+1. Stripe confirme le paiement via webhook → `fulfilled_at` est défini
+2. Un `download_token` unique est généré → envoyé par email
+3. `GET /api/shop/download/{token}` vérifie l'expiration et incrémente `download_count`
+4. Le fichier est servi directement depuis le serveur (jamais l'URL publique du fichier)
+
+#### Abonnements (`MONETIZATION_SUBSCRIPTION`)
+
+```python
+class Subscription(Base):
+    """Abonnement Stripe — 1:1 avec User."""
+    __tablename__ = "subscriptions"
+    user_id                = Column(Integer, ForeignKey("users.id"), unique=True)
+    stripe_subscription_id = Column(String, unique=True)  # sub_…
+    stripe_customer_id     = Column(String)                # cus_…
+    status                 = Column(Enum(SubscriptionStatus))
+    current_period_end     = Column(DateTime(timezone=True))
+    trial_end              = Column(DateTime(timezone=True))
+    cancelled_at           = Column(DateTime(timezone=True))
+```
+
+Les statuts possibles : `trialing → active → past_due / cancelled / unpaid`.
+
+La règle métier est simple : si `status in (active, trialing)`, l'utilisateur reçoit le rôle `premium`. Dès que le statut change (non-paiement, annulation), le rôle est automatiquement rétrogradé vers `user`. Cette logique est entièrement gérée par les webhooks Stripe, sans intervention humaine.
+
 ## Gestion des Migrations avec Alembic
 
 Dans un projet réel, le schéma de données évolue constamment. **Alembic** est l'outil qui permet de versionner ces changements (ajouter une colonne, créer une table) sans perdre de données.

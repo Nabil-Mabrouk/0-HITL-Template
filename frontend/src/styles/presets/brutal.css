@@ -1,0 +1,126 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PRESET: BRUTAL
+ * Zero radius, solid borders, hard shadows. Every decision is declared.
+ * Personality: raw creative energy, counter-culture, unapologetic.
+ * Suited for: creative agencies, portfolios, indie products, zines.
+ * Inspired by: brutalist web, neobrutalism, gumroad.com (old).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-preset="brutal"] {
+  /* Surfaces — white on black, no grey ambiguity */
+  --background:              oklch(0.99  0.000   0);
+  --foreground:              oklch(0.04  0.000   0);
+  --card:                    oklch(1.00  0.000   0);
+  --card-foreground:         oklch(0.04  0.000   0);
+  --popover:                 oklch(1.00  0.000   0);
+  --popover-foreground:      oklch(0.04  0.000   0);
+
+  /* Interactive — primary IS the brand color, bold */
+  --primary:                 var(--theme-primary,   oklch(0.04 0 0));
+  --primary-foreground:      oklch(0.99  0.000   0);
+  --secondary:               oklch(0.95  0.000   0);
+  --secondary-foreground:    oklch(0.04  0.000   0);
+  --muted:                   oklch(0.95  0.000   0);
+  --muted-foreground:        oklch(0.45  0.000   0);
+  --accent:                  var(--theme-accent,    oklch(0.74 0.18 55));
+  --accent-foreground:       oklch(0.04  0.000   0);
+  --destructive:             oklch(0.60  0.26   25);
+
+  /* Structure — hard, explicit borders */
+  --border:                  oklch(0.04  0.000   0);
+  --input:                   oklch(0.04  0.000   0);
+  --ring:                    oklch(0.04  0.000   0);
+  --radius:                  0rem;   /* NO radius — this is the law */
+
+  /* Charts */
+  --chart-1:                 var(--theme-primary, oklch(0.04 0 0));
+  --chart-2:                 var(--theme-accent,  oklch(0.74 0.18 55));
+  --chart-3:                 oklch(0.60  0.26   25);
+  --chart-4:                 oklch(0.55  0.22  145);
+  --chart-5:                 oklch(0.50  0.20  200);
+
+  /* Sidebar */
+  --sidebar:                 oklch(0.95  0.000   0);
+  --sidebar-foreground:      oklch(0.04  0.000   0);
+  --sidebar-primary:         oklch(0.04  0.000   0);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent:          oklch(0.90  0.000   0);
+  --sidebar-accent-foreground: oklch(0.04 0 0);
+  --sidebar-border:          oklch(0.04  0.000   0);
+  --sidebar-ring:            oklch(0.04  0.000   0);
+
+  /* Preset-specific tokens */
+  --brutal-shadow-offset: 4px;
+  --brutal-border-width:  2px;
+  --shadow-card:           var(--brutal-shadow-offset) var(--brutal-shadow-offset) 0
+                           oklch(0.04 0 0);
+  --shadow-elevated:       6px 6px 0 oklch(0.04 0 0);
+}
+
+/* ── Brutalist component overrides ─────────────────────────────────────────── */
+
+/* Hard shadow on all cards — the defining brutalist element */
+html[data-preset="brutal"] .card,
+html[data-preset="brutal"] [data-slot="card"] {
+  border: var(--brutal-border-width, 2px) solid oklch(0.04 0 0);
+  box-shadow: var(--brutal-shadow-offset, 4px) var(--brutal-shadow-offset, 4px) 0
+              oklch(0.04 0 0);
+  border-radius: 0;
+}
+
+/* Buttons: thick border + offset shadow, transforms on hover/active */
+html[data-preset="brutal"] button,
+html[data-preset="brutal"] [role="button"] {
+  border: 2px solid oklch(0.04 0 0);
+  box-shadow: 3px 3px 0 oklch(0.04 0 0);
+  border-radius: 0;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+html[data-preset="brutal"] button:hover,
+html[data-preset="brutal"] [role="button"]:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 oklch(0.04 0 0);
+}
+
+html[data-preset="brutal"] button:active,
+html[data-preset="brutal"] [role="button"]:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 oklch(0.04 0 0);
+}
+
+/* Inputs: solid thick border */
+html[data-preset="brutal"] input,
+html[data-preset="brutal"] textarea,
+html[data-preset="brutal"] select {
+  border: 2px solid oklch(0.04 0 0);
+  border-radius: 0;
+}
+
+/* Headings: heavy, tight */
+html[data-preset="brutal"] h1,
+html[data-preset="brutal"] h2,
+html[data-preset="brutal"] h3,
+html[data-preset="brutal"] h4 {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+/* Accent highlight strip on section headings */
+html[data-preset="brutal"] h2::after {
+  content: '';
+  display: block;
+  height: 4px;
+  width: 3ch;
+  margin-top: 6px;
+  background: var(--theme-accent, oklch(0.74 0.18 55));
+}
+
+/* Links: underline is structural, not decorative */
+html[data-preset="brutal"] a:not(button a) {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}

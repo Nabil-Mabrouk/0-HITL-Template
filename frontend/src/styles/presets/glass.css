@@ -1,0 +1,97 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PRESET: GLASS
+ * Dark base, frosted glass surfaces, depth through blur and layering.
+ * Personality: premium, immersive, depth-first. Suits creative tools,
+ *              gaming, luxury products, visionOS-style interfaces.
+ * Inspired by: Apple visionOS, Arc browser, gaming dashboards.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-preset="glass"] {
+  /* Surfaces — dark with subtle chromatic tint */
+  --background:              oklch(0.10  0.015 264);
+  --foreground:              oklch(0.96  0.008 264);
+  --card:                    oklch(0.18  0.018 264 / 0.55);
+  --card-foreground:         oklch(0.96  0.008 264);
+  --popover:                 oklch(0.16  0.018 264 / 0.80);
+  --popover-foreground:      oklch(0.96  0.008 264);
+
+  /* Interactive */
+  --primary:                 var(--theme-primary,   oklch(0.628 0.258 264));
+  --primary-foreground:      oklch(0.99  0.002   0);
+  --secondary:               oklch(0.25  0.018 264 / 0.60);
+  --secondary-foreground:    oklch(0.90  0.008 264);
+  --muted:                   oklch(0.20  0.012 264 / 0.50);
+  --muted-foreground:        oklch(0.60  0.015 264);
+  --accent:                  oklch(0.25  0.020 264 / 0.55);
+  --accent-foreground:       oklch(0.90  0.008 264);
+  --destructive:             oklch(0.65  0.22   25);
+
+  /* Structure — borders use light with opacity for glass look */
+  --border:                  oklch(1.00  0.000   0 / 0.10);
+  --input:                   oklch(1.00  0.000   0 / 0.08);
+  --ring:                    var(--theme-primary, oklch(0.628 0.258 264));
+  --radius:                  0.875rem;
+
+  /* Charts */
+  --chart-1:                 oklch(0.628 0.258 264);
+  --chart-2:                 oklch(0.58  0.27  310);
+  --chart-3:                 oklch(0.56  0.24  200);
+  --chart-4:                 oklch(0.70  0.20   55);
+  --chart-5:                 oklch(0.65  0.22  145);
+
+  /* Sidebar */
+  --sidebar:                 oklch(0.13  0.018 264 / 0.70);
+  --sidebar-foreground:      oklch(0.96  0.008 264);
+  --sidebar-primary:         var(--theme-primary, oklch(0.628 0.258 264));
+  --sidebar-primary-foreground: oklch(0.99 0.002 0);
+  --sidebar-accent:          oklch(0.25  0.018 264 / 0.60);
+  --sidebar-accent-foreground: oklch(0.90 0.008 264);
+  --sidebar-border:          oklch(1.00  0.000   0 / 0.08);
+  --sidebar-ring:            var(--theme-primary, oklch(0.628 0.258 264));
+
+  /* Preset-specific tokens */
+  --glow-primary:            oklch(0.628 0.258 264 / 0.25);
+  --glow-secondary:          oklch(0.58  0.27  310 / 0.15);
+  --glass-blur:              16px;
+  --glass-border:            oklch(1.00 0 0 / 0.12);
+  --shadow-card:             0 4px 24px oklch(0% 0 0 / 0.5),
+                             inset 0 1px 0 oklch(100% 0 0 / 0.08);
+  --shadow-elevated:         0 8px 40px oklch(0% 0 0 / 0.6),
+                             inset 0 1px 0 oklch(100% 0 0 / 0.10);
+}
+
+/* Glass surface blur — applied to cards and containers */
+html[data-preset="glass"] .card,
+html[data-preset="glass"] [data-slot="card"] {
+  backdrop-filter: blur(var(--glass-blur, 16px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 16px));
+  border-color: var(--glass-border);
+}
+
+/* Popover / dropdown glass */
+html[data-preset="glass"] [role="menu"],
+html[data-preset="glass"] [role="listbox"],
+html[data-preset="glass"] [data-slot="popover"] {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-color: var(--glass-border);
+}
+
+/* Heading style — slightly lighter weight to feel "airy" */
+html[data-preset="glass"] h1,
+html[data-preset="glass"] h2,
+html[data-preset="glass"] h3 {
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+
+/* Subtle gradient shine on primary buttons */
+html[data-preset="glass"] button[data-variant="default"],
+html[data-preset="glass"] .btn-primary {
+  background: linear-gradient(
+    160deg,
+    var(--theme-primary, oklch(0.628 0.258 264)) 0%,
+    var(--theme-secondary, oklch(0.58 0.27 310)) 100%
+  );
+  box-shadow: 0 0 20px var(--glow-primary, oklch(0.628 0.258 264 / 0.3));
+}

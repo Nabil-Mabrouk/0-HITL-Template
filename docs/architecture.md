@@ -1,180 +1,177 @@
-# Architecture du Template Agentic AI
+# Architecture du Template Agentic AI — 0-HITL
 
-## 🏗️ Vue d'Ensemble
+## Vue d'Ensemble
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React/TS)                       │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Landing     │ │ Dashboard   │ │ Agent       │           │
-│  │ Page        │ │ Utilisateur │ │ Services    │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                     Frontend (React 19 / TS / Vite)                  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
+│  │ Landing  │ │ Learn /  │ │  Shop /  │ │ Premium  │ │  Admin   │  │
+│  │          │ │ Lessons  │ │ Success  │ │          │ │Dashboard │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
+└──────────────────────────────┬──────────────────────────────────────┘
+                               │ HTTPS (Traefik)
+┌──────────────────────────────▼──────────────────────────────────────┐
+│                     Backend (FastAPI)                                 │
+│                                                                       │
+│  Auth & Users │ Content CMS │ Shop & Sub │ Agentic IA │ Admin        │
+│  ─────────────┼─────────────┼────────────┼────────────┼────────────  │
+│  /api/auth    │ /api/content│ /api/shop  │ /api/svc   │ /api/admin   │
+│  /api/users   │ /api/admin/ │ /api/sub   │ /api/agent │ /api/admin/  │
+│               │  content    │ /api/shop/ │ _services  │  security    │
+│               │             │  webhook   │            │ /api/admin/  │
+│               │             │ /api/admin │            │  shop        │
+│               │             │  /shop     │            │              │
+└──────────────────────────────┬──────────────────────────────────────┘
                                │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend (FastAPI)                         │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ Auth &      │ │ API Routes  │ │ Agentic     │           │
-│  │ Users       │ │             │ │ Services    │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Infrastructure                            │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐           │
-│  │ PostgreSQL  │ │ Redis       │ │ External    │           │
-│  │ Database    │ │ Cache       │ │ APIs        │           │
-│  └─────────────┘ └─────────────┘ └─────────────┘           │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────▼──────────────────────────────────────┐
+│                     Infrastructure                                    │
+│  ┌────────────┐  ┌────────────┐  ┌─────────────┐  ┌─────────────┐  │
+│  │ PostgreSQL │  │  Stripe    │  │  SMTP Email │  │  GeoIP DB   │  │
+│  │  Database  │  │  API       │  │  (Gmail…)   │  │  (MaxMind)  │  │
+│  └────────────┘  └────────────┘  └─────────────┘  └─────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## 🎯 Composants Principaux
+## Composants Backend
 
-### 1. **Backend (FastAPI)**
+### Routers API
 
-#### Core Modules
-- `auth/` - Authentification (JWT, OAuth2)
-- `models.py` - Modèles SQLAlchemy
-- `database.py` - Configuration DB
-- `schemas/` - Schemas Pydantic
+| Fichier | Prefix | Rôle |
+|---|---|---|
+| `auth.py` | `/api/auth` | Login, register, refresh, verify, reset |
+| `users.py` | `/api/users` | Profil utilisateur |
+| `admin.py` | `/api/admin` | Gestion utilisateurs, waitlist |
+| `waitlist.py` | `/api/waitlist` | Inscription liste d'attente |
+| `onboarding.py` | `/api/onboarding` | Questionnaire + profilage |
+| `content.py` | `/api/content` | Tutoriaux et leçons (lecture) |
+| `admin_content.py` | `/api/admin/content` | CRUD contenu |
+| `media.py` | `/api/media` | Upload/gestion fichiers |
+| `shop.py` | `/api/shop` | Boutique : produits, checkout, téléchargement |
+| `shop_webhook.py` | `/api/shop/webhook` | Webhook Stripe (signature HMAC vérifiée) |
+| `subscription.py` | `/api/subscription` | Plans, checkout abonnement, portal, annulation |
+| `admin_shop.py` | `/api/admin/shop` | CRUD produits, ventes, MRR, abonnements |
+| `tracking.py` | `/api/track` | Collecte visites GeoIP |
+| `analytics.py` | `/api/admin/analytics` | Stats visiteurs, world map |
+| `security.py` | `/api/admin/security` | Événements d'intrusion |
+| `admin_db.py` | `/api/admin/db` | Maintenance DB, VACUUM |
+| `agent_services.py` | `/api/agent_services` | Exécution services IA |
+| `seo.py` | `/sitemap.xml`, `/robots.txt` | SEO |
 
-#### Agentic Services
-- `agents/core/` - Orchestrateur, mémoire, garde-fous
-- `agents/services/` - Services modulaires
-- `agents/tools/` - Outils disponibles
-- `agents/service_registry.py` - Registre des services
+### Middleware
 
-#### API Routes
-- `routers/auth.py` - Authentification
-- `routers/users.py` - Gestion utilisateurs
-- `routers/agent_services.py` - Services IA
-- `routers/admin.py` - Administration
+| Middleware | Rôle |
+|---|---|
+| `CORSMiddleware` | Gestion CORS (origines configurées) |
+| `SecurityMiddleware` | Détection scanners, injections, chemins suspects |
+| `SlowAPI` | Rate limiting par IP |
 
-### 2. **Frontend (React/TypeScript)**
+### Modèles de Données (SQLAlchemy)
 
-#### Pages Principales
-- `LandingPage` - Page d'accueil
-- `Login/Register` - Authentification
-- `UserDashboard` - Tableau de bord
-
-#### Agentic Dashboard
-- `agent-dashboard/` - Dashboard principal
-- `agent-services/` - Composants par service
-- `agent-commons/` - Composants partagés
-
-#### State Management
-- Redux/Context pour l'état global
-- React Query pour les données serveur
-- Zustand pour l'état local
-
-### 3. **Services Agentic IA**
-
-#### Architecture Modulaire
 ```
-service/
-├── config.yaml      # Configuration
-├── agents.py       # Agents spécifiques
-├── tools.py        # Outils custom
-├── workflows.py    # Workflows prédéfinis
-└── api.py          # Routes API
-```
+users
+ ├── refresh_tokens        (sessions JWT)
+ ├── activity_logs         (audit)
+ ├── user_profiles         (résultats onboarding)
+ ├── purchases             (achats produits)
+ ├── subscription          (abonnement Stripe, 1:1)
+ └── security_events       (événements détectés)
 
-#### Composants Communs
-- **Orchestrator** : Coordination entre agents
-- **Memory** : Mémoire à court/long terme
-- **Guardrails** : Contrôles de sécurité
-- **Tool Registry** : Registre des outils
+products
+ └── purchases
 
-## 🔗 Flux de Données
+subscriptions → users
 
-### 1. Authentification
-```
-Utilisateur → Frontend → Backend (JWT) → Database
+tutorials
+ └── lessons
+
+visits                      (tracking GeoIP anonymisé)
+service_executions
+ ├── service_execution_steps
+ └── service_results
+user_service_preferences
+db_settings
+security_events
 ```
 
-### 2. Service Execution
-```
-Frontend → API → Service Registry → Agent Orchestrator → Tools → External APIs
-```
+## Système de Rôles
 
-### 3. Data Persistence
 ```
-Service Results → Database → Frontend (via API)
+anonymous → waitlist → user → premium → admin
+    0           1        2       3         4
 ```
 
-## 🗄️ Base de Données
+- `premium` : accordé automatiquement à l'activation d'un abonnement Stripe ou manuellement par l'admin
+- Les webhooks Stripe révoquent automatiquement `premium` en cas de non-paiement ou annulation
 
-### Tables Principales
-- `users` - Utilisateurs
-- `service_executions` - Exécutions de services
-- `service_results` - Résultats détaillés
-- `user_sessions` - Sessions utilisateur
+## Flux Monétisation
 
-### Relations
-```sql
-users ──┬── service_executions ─── service_results
-        ├── user_sessions
-        └── user_preferences
+### Boutique (achat unique)
+```
+1. GET  /api/shop/products          → afficher le catalogue
+2. POST /api/shop/checkout          → créer session Stripe Checkout
+3.       [Stripe Hosted Page]       → paiement utilisateur
+4. POST /api/shop/webhook           → checkout.session.completed
+5.       _fulfill_shop_purchase()   → générer download_token, envoyer email
+6. GET  /api/shop/download/{token}  → servir le fichier (vérifié + compté)
+7. GET  /api/shop/purchases         → afficher dans le profil
 ```
 
-## 🔒 Sécurité
+### Abonnement (récurrent)
+```
+1. GET  /api/subscription/plans     → afficher les plans Stripe
+2. POST /api/subscription/checkout  → créer session Stripe Checkout
+3.       [Stripe Hosted Page]       → paiement utilisateur
+4. POST /api/shop/webhook           → checkout.session.completed (mode=subscription)
+5.       _fulfill_subscription()    → créer Subscription en DB, rôle → premium
+6. POST /api/shop/webhook           → customer.subscription.updated/deleted
+7.       _update/cancel_subscription() → sync statut, rôle → user si annulé
+8. POST /api/subscription/portal    → Stripe Customer Portal (gérer, annuler)
+```
 
-### Niveaux de Sécurité
-1. **Authentification** : JWT, OAuth2
-2. **Autorisation** : Rôles et permissions
-3. **Validation** : Pydantic schemas
-4. **Rate Limiting** : Limite de requêtes
-5. **Agent Guardrails** : Contrôles IA
+## Système de Sécurité
 
-### Protection des Données
-- Chiffrement des données sensibles
-- Validation des entrées utilisateur
-- Audit des actions administrateur
-- Backup automatique
+```
+Requête entrante
+       ↓
+SecurityMiddleware.dispatch()
+       ├── chemin ignoré ? (/health, /api/track…) → pass
+       ├── scanner UA ? (sqlmap, nikto…) → log SecurityEvent(scanner_detected, high)
+       ├── chemin suspect ? (.git, .env, wp-*…)  → log SecurityEvent(path_scan, severity)
+       └── injection dans URL/query ?             → log SecurityEvent(injection_attempt, critical)
+       ↓
+call_next(request)  ← jamais bloqué, monitoring uniquement
 
-## 🚀 Déploiement
+Admin Dashboard → /api/admin/security/events
+               → /api/admin/security/summary (top IPs, by type/severity)
+               → DELETE /api/admin/security/events/old (purge)
+```
 
-### Options
-1. **Docker Compose** (Recommandé)
-2. **Kubernetes** (Production)
-3. **Serverless** (AWS Lambda, etc.)
+## Déploiement Docker
 
-### Environnements
-- **Development** : Docker Compose local
-- **Staging** : Pré-production
-- **Production** : Cloud (AWS/GCP/Azure)
+```
+docker-compose.yml          ← squelette commun (réseaux, volumes, healthchecks)
+docker-compose.dev.yml      ← hot-reload, ports exposés, volumes code
+docker-compose.prod.yml     ← images optimisées, env_file, Traefik labels
+```
 
-## 📊 Monitoring
+Réseaux :
+- `proxy-net` (externe, partagé avec Traefik) : frontend ↔ traefik, backend ↔ traefik
+- `internal-net` (isolé) : backend ↔ db, migrate ↔ db
 
-### Métriques
-- Performance des services IA
-- Utilisation des ressources
-- Erreurs et exceptions
-- Satisfaction utilisateur
+## Extensibilité
 
-### Logging
-- Logs structurés (JSON)
-- Centralisation (ELK/Splunk)
-- Alertes automatiques
+### Ajouter un service Agentic IA
+1. `backend/config/agent_services.yaml` — définir le service et ses workflows
+2. `backend/app/agents/services/<service>/` — implémenter les agents
+3. `frontend/src/agent-services/<service>/` — ajouter l'UI
+4. `backend/app/routers/agent_services.py` — enregistrer le router
 
-## 🔧 Extensibilité
-
-### Points d'Extension
-1. **Nouveaux Services** : Architecture modulaire
-2. **Nouveaux Outils** : Tool Registry
-3. **Nouveaux Modèles IA** : Configuration YAML
-4. **Nouveaux Workflows** : Définition JSON/YAML
-
-### Patterns de Design
-- Repository Pattern (Data Access)
-- Service Layer (Business Logic)
-- Dependency Injection
-- Event-Driven Architecture
+### Ajouter un nouveau modèle
+1. `backend/app/models.py` — créer la classe SQLAlchemy
+2. `alembic revision --autogenerate -m "description"` — générer la migration
+3. `alembic upgrade head` — appliquer
 
 ---
 
-**Version**: 1.0.0
-**Dernière mise à jour**: 2026-03-24
-**Statut**: Production Ready
+**Version** : 1.2.0 — **Dernière mise à jour** : 2026-03-26

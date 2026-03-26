@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PRESET: EDITORIAL
+ * Warm paper tones, serif headings, generous whitespace.
+ * Personality: trustworthy, readable, authoritative. Text is king.
+ * Suited for: newsletters, blogs, documentation, knowledge bases, books.
+ * Inspired by: Substack, Notion, iA Writer, literary magazines.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-preset="editorial"] {
+  /* Surfaces — warm paper, slightly off-white to reduce eye strain */
+  --background:              oklch(0.970 0.012  80);
+  --foreground:              oklch(0.120 0.010  60);
+  --card:                    oklch(0.990 0.006  80);
+  --card-foreground:         oklch(0.120 0.010  60);
+  --popover:                 oklch(0.990 0.006  80);
+  --popover-foreground:      oklch(0.120 0.010  60);
+
+  /* Interactive — muted, ink-like primary */
+  --primary:                 var(--theme-primary,   oklch(0.25 0.02 264));
+  --primary-foreground:      oklch(0.98  0.004  80);
+  --secondary:               oklch(0.92  0.015  80);
+  --secondary-foreground:    oklch(0.20  0.010  60);
+  --muted:                   oklch(0.93  0.010  80);
+  --muted-foreground:        oklch(0.52  0.015  70);
+  --accent:                  oklch(0.91  0.018  80);
+  --accent-foreground:       oklch(0.18  0.012  60);
+  --destructive:             oklch(0.55  0.22   25);
+
+  /* Structure — warm, thin borders */
+  --border:                  oklch(0.84  0.015  75);
+  --input:                   oklch(0.88  0.012  78);
+  --ring:                    var(--theme-primary, oklch(0.25 0.02 264));
+  --radius:                  0.2rem;  /* minimal radius — almost flat */
+
+  /* Charts — muted, ink-inspired palette */
+  --chart-1:                 oklch(0.45  0.14  264);
+  --chart-2:                 oklch(0.50  0.14  200);
+  --chart-3:                 oklch(0.45  0.12   25);
+  --chart-4:                 oklch(0.48  0.10  145);
+  --chart-5:                 oklch(0.55  0.12   80);
+
+  /* Sidebar */
+  --sidebar:                 oklch(0.955 0.014  80);
+  --sidebar-foreground:      oklch(0.15  0.010  60);
+  --sidebar-primary:         var(--theme-primary, oklch(0.25 0.02 264));
+  --sidebar-primary-foreground: oklch(0.98 0.004 80);
+  --sidebar-accent:          oklch(0.92  0.015  80);
+  --sidebar-accent-foreground: oklch(0.20 0.010 60);
+  --sidebar-border:          oklch(0.84  0.015  75);
+  --sidebar-ring:            var(--theme-primary, oklch(0.25 0.02 264));
+
+  /* Preset-specific tokens */
+  --glow-primary:            oklch(0.45 0.14 264 / 0.08);
+  --glow-secondary:          oklch(0.50 0.14 200 / 0.05);
+  --shadow-card:             0 1px 2px oklch(0.12 0.01 60 / 0.08),
+                             0 2px 8px oklch(0.12 0.01 60 / 0.05);
+  --shadow-elevated:         0 2px 4px  oklch(0.12 0.01 60 / 0.10),
+                             0 6px 20px oklch(0.12 0.01 60 / 0.07);
+  --prose-measure:           68ch;
+}
+
+/* ── Editorial typography system ────────────────────────────────────────────── */
+
+/* Headings use serif — the defining editorial characteristic */
+html[data-preset="editorial"] h1,
+html[data-preset="editorial"] h2,
+html[data-preset="editorial"] h3,
+html[data-preset="editorial"] h4,
+html[data-preset="editorial"] h5,
+html[data-preset="editorial"] h6 {
+  font-family: var(--font-heading,
+    Georgia, 'Times New Roman', 'Noto Serif', ui-serif, serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* h1 is especially expressive */
+html[data-preset="editorial"] h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Body text optimized for long-form reading */
+html[data-preset="editorial"] body,
+html[data-preset="editorial"] p {
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  max-width: var(--prose-measure, 68ch);
+}
+
+/* Pull quote style — used by wrapping in <blockquote> */
+html[data-preset="editorial"] blockquote {
+  border-left: 3px solid var(--theme-primary, oklch(0.25 0.02 264));
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: oklch(0.38 0.015 70);
+  font-size: 1.15rem;
+  line-height: 1.65;
+}
+
+/* Subtle card style — more like a note card than a panel */
+html[data-preset="editorial"] .card,
+html[data-preset="editorial"] [data-slot="card"] {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+
+/* Links with classic underline emphasis */
+html[data-preset="editorial"] a:not(nav a):not(button a) {
+  text-decoration: underline;
+  text-decoration-color: var(--theme-primary, oklch(0.25 0.02 264));
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+html[data-preset="editorial"] a:not(nav a):not(button a):hover {
+  text-decoration-thickness: 2px;
+}
