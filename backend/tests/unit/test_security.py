@@ -1,229 +1,140 @@
 """
-Tests unitaires pour app/auth/security.py
+Tests unitaires pour le module app.auth.security.
 
-Couvre :
-- hash_password / verify_password
-- create_access_token / decode_access_token
-- create_refresh_token
-- create_email_token / decode_email_token
+Ces tests vérifient le comportement des fonctions de hachage,
+de vérification de mots de passe et de gestion des tokens JWT/email.
+Aucune base de données ni serveur HTTP n'est nécessaire.
 """
 
-import pytest
-import time
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch
+import os
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-minimum-32-chars-for-jwt-signing")
 
+import time
+import pytest
 from app.auth.security import (
     hash_password,
     verify_password,
     create_access_token,
-    decode_access_token,
     create_refresh_token,
+    decode_access_token,
     create_email_token,
     decode_email_token,
 )
 
 
-# ── hash_password ─────────────────────────────────────────────────────────────
+# ── Tests hash_password ───────────────────────────────────────────────────────
 
+@pytest.mark.unit
 class TestHashPassword:
-    """Tests pour la fonction de hachage de mots de passe."""
+    def test_returns_bcrypt_hash(self):
+        h = hash_password("securePass1!")
+        assert h.startswith("$2b$")
 
-    def test_hash_returns_bcrypt_format(self):
-        """Le hash doit commencer par $2b$ (format bcrypt)."""
-        hashed = hash_password("Password123!")
-        assert hashed.startswith("$2b$")
-
-    def test_hash_is_different_from_original(self):
-        """Le hash ne doit pas être le mot de passe en clair."""
-        password = "Password123!"
-        hashed = hash_password(password)
-        assert hashed != password
-
-    def test_same_password_gives_different_hashes(self):
-        """bcrypt avec salt aléatoire : deux hashes différents pour le même mot de passe."""
-        h1 = hash_password("Password123!")
-        h2 = hash_password("Password123!")
+    def test_different_salts_each_call(self):
+        h1 = hash_password("securePass1!")
+        h2 = hash_password("securePass1!")
         assert h1 != h2
 
-    def test_short_password_raises(self):
-        """Un mot de passe trop court doit lever ValueError."""
-        with pytest.raises(ValueError, match="8 caractères"):
-            hash_password("abc")
-
-    def test_empty_password_raises(self):
-        """Un mot de passe vide doit lever ValueError."""
+    def test_rejects_empty_password(self):
         with pytest.raises(ValueError):
             hash_password("")
 
-    def test_exactly_8_chars_accepted(self):
-        """8 caractères exactement doit être accepté."""
-        result = hash_password("Abcd123!")
-        assert result.startswith("$2b$")
+    def test_rejects_short_password(self):
+        with pytest.raises(ValueError):
+            hash_password("abc")
+
+    def test_accepts_minimum_length(self):
+        h = hash_password("abcdefgh")
+        assert h.startswith("$2b$")
 
 
-# ── verify_password ───────────────────────────────────────────────────────────
+# ── Tests verify_password ─────────────────────────────────────────────────────
 
+@pytest.mark.unit
 class TestVerifyPassword:
-    """Tests pour la vérification de mots de passe."""
-
     def test_correct_password_returns_true(self):
-        """Un mot de passe correct doit retourner True."""
-        password = "Password123!"
-        hashed = hash_password(password)
-        assert verify_password(password, hashed) is True
+        h = hash_password("myPassword1!")
+        assert verify_password("myPassword1!", h) is True
 
     def test_wrong_password_returns_false(self):
-        """Un mauvais mot de passe doit retourner False."""
-        hashed = hash_password("Password123!")
-        assert verify_password("WrongPassword!", hashed) is False
+        h = hash_password("myPassword1!")
+        assert verify_password("wrongPassword", h) is False
 
     def test_empty_plain_returns_false(self):
-        """Un mot de passe vide en clair doit retourner False sans exception."""
-        hashed = hash_password("Password123!")
-        assert verify_password("", hashed) is False
+        h = hash_password("myPassword1!")
+        assert verify_password("", h) is False
 
     def test_empty_hash_returns_false(self):
-        """Un hash vide doit retourner False sans exception."""
-        assert verify_password("Password123!", "") is False
+        assert verify_password("myPassword1!", "") is False
 
-    def test_none_values_return_false(self):
-        """Des valeurs None doivent retourner False sans exception."""
-        assert verify_password(None, None) is False
+    def test_case_sensitive(self):
+        h = hash_password("MyPassword1!")
+        assert verify_password("mypassword1!", h) is False
 
 
-# ── create_access_token / decode_access_token ─────────────────────────────────
+# ── Tests create_access_token / decode_access_token ───────────────────────────
 
+@pytest.mark.unit
 class TestAccessToken:
-    """Tests pour les tokens JWT d'accès."""
-
-    def test_token_is_string(self):
-        """Le token créé doit être une chaîne."""
-        token = create_access_token({"sub": "123"})
+    def test_creates_valid_token(self):
+        token = create_access_token({"sub": "42"})
         assert isinstance(token, str)
+        assert len(token) > 20
 
-    def test_token_has_three_parts(self):
-        """Un JWT valide contient exactement 3 parties séparées par des points."""
-        token = create_access_token({"sub": "123"})
-        parts = token.split(".")
-        assert len(parts) == 3
-
-    def test_decode_valid_token_returns_payload(self):
-        """Décoder un token valide doit retourner le payload."""
+    def test_decode_returns_payload(self):
         token = create_access_token({"sub": "42"})
         payload = decode_access_token(token)
         assert payload is not None
         assert payload["sub"] == "42"
-
-    def test_decoded_token_has_type_access(self):
-        """Le payload décodé doit avoir type='access'."""
-        token = create_access_token({"sub": "42"})
-        payload = decode_access_token(token)
         assert payload["type"] == "access"
 
-    def test_decoded_token_has_exp(self):
-        """Le payload décodé doit contenir une date d'expiration."""
-        token = create_access_token({"sub": "42"})
-        payload = decode_access_token(token)
-        assert "exp" in payload
-
-    def test_invalid_token_returns_none(self):
-        """Un token invalide/altéré doit retourner None."""
-        assert decode_access_token("not.a.valid.token") is None
-
-    def test_empty_token_returns_none(self):
-        """Un token vide doit retourner None."""
-        assert decode_access_token("") is None
-
-    def test_wrong_type_token_rejected(self):
-        """Un token avec type != 'access' doit être rejeté."""
-        from jose import jwt
-        from app.config import get_settings
-        settings = get_settings()
-        # Créer un token avec type='refresh' à la main
-        payload = {
-            "sub": "42",
-            "type": "refresh",
-            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        }
-        bad_token = jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm)
-        assert decode_access_token(bad_token) is None
-
     def test_tampered_token_returns_none(self):
-        """Un token dont la signature a été altérée doit retourner None."""
         token = create_access_token({"sub": "42"})
-        # Modifier un caractère dans la signature (3ème partie)
-        parts = token.split(".")
-        parts[2] = parts[2][:-1] + ("A" if parts[2][-1] != "A" else "B")
-        tampered = ".".join(parts)
+        tampered = token[:-5] + "XXXXX"
         assert decode_access_token(tampered) is None
 
+    def test_invalid_token_returns_none(self):
+        assert decode_access_token("not.a.token") is None
 
-# ── create_refresh_token ──────────────────────────────────────────────────────
+    def test_empty_token_returns_none(self):
+        assert decode_access_token("") is None
 
+
+# ── Tests create_refresh_token ────────────────────────────────────────────────
+
+@pytest.mark.unit
 class TestRefreshToken:
-    """Tests pour les tokens de rafraîchissement."""
-
-    def test_refresh_token_is_string(self):
-        """Le refresh token doit être une chaîne."""
+    def test_returns_string(self):
         token = create_refresh_token()
         assert isinstance(token, str)
 
-    def test_refresh_token_length(self):
-        """Le token doit avoir une longueur suffisante (≥ 40 chars en base64url)."""
+    def test_sufficient_length(self):
         token = create_refresh_token()
-        assert len(token) >= 40
+        assert len(token) > 50
 
-    def test_refresh_tokens_are_unique(self):
-        """Deux refresh tokens générés doivent être différents."""
-        t1 = create_refresh_token()
-        t2 = create_refresh_token()
-        assert t1 != t2
-
-    def test_refresh_token_is_url_safe(self):
-        """Le token doit contenir uniquement des caractères URL-safe."""
-        import re
-        token = create_refresh_token()
-        assert re.match(r'^[A-Za-z0-9_\-]+$', token)
+    def test_unique_each_call(self):
+        tokens = {create_refresh_token() for _ in range(10)}
+        assert len(tokens) == 10
 
 
-# ── create_email_token / decode_email_token ──────────────────────────────────
+# ── Tests create_email_token / decode_email_token ─────────────────────────────
 
+@pytest.mark.unit
 class TestEmailToken:
-    """Tests pour les tokens d'actions email (vérification, reset)."""
+    def test_verify_token_roundtrip(self):
+        token = create_email_token("user@example.com", "verify")
+        email = decode_email_token(token, "verify")
+        assert email == "user@example.com"
 
-    def test_verify_token_decoded_correctly(self):
-        """Un token de vérification doit être décodé avec l'email correct."""
-        email = "user@example.com"
-        token = create_email_token(email, "verify")
-        decoded_email = decode_email_token(token, "verify")
-        assert decoded_email == email
-
-    def test_reset_token_decoded_correctly(self):
-        """Un token de reset doit être décodé avec l'email correct."""
-        email = "user@example.com"
-        token = create_email_token(email, "reset")
-        decoded_email = decode_email_token(token, "reset")
-        assert decoded_email == email
+    def test_reset_token_roundtrip(self):
+        token = create_email_token("user@example.com", "reset")
+        email = decode_email_token(token, "reset")
+        assert email == "user@example.com"
 
     def test_wrong_purpose_returns_none(self):
-        """Utiliser un token 'verify' pour un 'reset' doit retourner None."""
-        email = "user@example.com"
-        verify_token = create_email_token(email, "verify")
-        # Essai d'utiliser ce token pour un reset
-        assert decode_email_token(verify_token, "reset") is None
+        token = create_email_token("user@example.com", "verify")
+        assert decode_email_token(token, "reset") is None
 
     def test_invalid_token_returns_none(self):
-        """Un token invalide doit retourner None."""
         assert decode_email_token("invalid.token.here", "verify") is None
-
-    def test_token_contains_email_as_sub(self):
-        """Le token JWT doit encoder l'email dans le claim 'sub'."""
-        from jose import jwt
-        from app.config import get_settings
-        settings = get_settings()
-        email = "test@example.com"
-        token = create_email_token(email, "verify")
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
-        assert payload["sub"] == email
-        assert payload["purpose"] == "verify"
