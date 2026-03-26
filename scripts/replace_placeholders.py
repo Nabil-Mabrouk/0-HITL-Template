@@ -13,27 +13,36 @@ from typing import Dict, List
 # Mappings des placeholders avec leurs valeurs par défaut
 # Ces valeurs seront remplacées par les vraies valeurs lors de l'initialisation
 PLACEHOLDERS = {
-    # Project identifiers
+    # ── Identifiants projet ────────────────────────────────────────────────────
+    # Utilisé dans : main.py (titre API), docker-compose.yml (noms services)
     "0-HITL": "{{PROJECT_NAME}}",
-    "0-HITL": "{{PROJECT_NAME}}",  # variante sans espace
+
+    # Version minuscule pour URLs, noms de base de données, préfixes CSS
     "0hitl": "{{PROJECT_SLUG}}",
+
+    # Domaine de production (CORS, Traefik, emails)
     "0-hitl.com": "{{PROJECT_DOMAIN}}",
 
-    # Display names
+    # ── Noms d'affichage ──────────────────────────────────────────────────────
+    # Affiché dans la navbar, les emails, les onglets navigateur
     "Zero - Human In The Loop": "{{PROJECT_DISPLAY_NAME}}",
     "Zero Human In The Loop": "{{PROJECT_DISPLAY_NAME}}",
 
-    # Emails and contact
+    # ── Contact ───────────────────────────────────────────────────────────────
+    # Email par défaut (footer, administration, support)
     "ton@gmail.com": "{{DEFAULT_EMAIL}}",
 
-    # Paths and URLs (à adapter selon le projet)
+    # ── URLs dérivées ─────────────────────────────────────────────────────────
     "api.0-hitl.com": "api.{{PROJECT_DOMAIN}}",
 
-    # Textes spécifiques (à rendre génériques)
+    # ── Textes marketing ──────────────────────────────────────────────────────
+    # Accroche de la page d'accueil (hero section, balises meta)
     "L'automatisation intelligente arrive": "{{PROJECT_TAGLINE}}",
 
-    # Branding colors (si spécifiées dans le code)
-    "#000000": "{{PRIMARY_COLOR}}",  # Exemple, à vérifier
+    # ── Charte graphique ──────────────────────────────────────────────────────
+    # Couleur principale (variable CSS --color-primary dans index.css)
+    # ATTENTION : #000000 est très courant — vérifier avec --dry-run avant d'appliquer
+    "#000000": "{{PRIMARY_COLOR}}",
 }
 
 # Fichiers à ignorer (binaires, etc.)
