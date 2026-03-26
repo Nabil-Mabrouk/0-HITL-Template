@@ -565,4 +565,41 @@ class UserServicePreference(Base):
     user = relationship("User", backref="service_preferences")
 
 
+class SecurityEventType(str, enum.Enum):
+    path_scan         = "path_scan"
+    brute_force       = "brute_force"
+    injection_attempt = "injection_attempt"
+    scanner_detected  = "scanner_detected"
+    rate_limit        = "rate_limit"
+    suspicious_payload = "suspicious_payload"
+
+class SecuritySeverity(str, enum.Enum):
+    low      = "low"
+    medium   = "medium"
+    high     = "high"
+    critical = "critical"
+
+class SecurityEvent(Base):
+    """
+    Événement de sécurité détecté par le middleware ou les routers.
+
+    Capture les tentatives d'intrusion, de scan, d'injection,
+    et les dépassements de rate limit.
+    """
+    __tablename__ = "security_events"
+
+    id          = Column(Integer, primary_key=True, index=True)
+    event_type  = Column(String, nullable=False, index=True)
+    severity    = Column(String, nullable=False, index=True)
+    ip_address  = Column(String, nullable=True,  index=True)
+    path        = Column(String, nullable=True)
+    method      = Column(String, nullable=True)
+    user_agent  = Column(String, nullable=True)
+    details     = Column(JSON, nullable=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=True)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now(), index=True)
+
+    user = relationship("User", backref="security_events", foreign_keys=[user_id])
+
+
 # Après le champ lang

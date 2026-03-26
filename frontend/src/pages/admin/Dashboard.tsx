@@ -58,7 +58,20 @@ interface DbStats {
   };
 }
 
-type Tab = "users" | "waitlist" | "analytics" | "content" | "database";
+type Tab = "users" | "waitlist" | "analytics" | "content" | "database" | "security";
+
+interface SecurityEvent {
+  id: number; event_type: string; severity: string;
+  ip_address: string; path: string; method: string;
+  user_agent: string; details: Record<string, string> | null;
+  created_at: string;
+}
+interface SecuritySummary {
+  total: number; last_24h: number;
+  by_severity: Record<string, number>;
+  by_type:     Record<string, number>;
+  top_ips:     { ip: string; hits: number }[];
+}
 
 // ── Composant ──────────────────────────────────────────────────────────────
 
@@ -116,6 +129,12 @@ export default function AdminDashboard() {
   const [importUsersResult, setImportUsersResult] = useState("");
   const importUsersRef                            = useRef<HTMLInputElement>(null);
 
+  // ── Security
+  const [secEvents,  setSecEvents]  = useState<SecurityEvent[]>([]);
+  const [secSummary, setSecSummary] = useState<SecuritySummary | null>(null);
+  const [secDays,    setSecDays]    = useState(7);
+  const [secLoading, setSecLoading] = useState(false);
+
   // ── Flash message
   const [actionMsg, setActionMsg] = useState("");
 
@@ -132,6 +151,7 @@ export default function AdminDashboard() {
     if (activeTab === "analytics") fetchAnalytics();
     if (activeTab === "content")   fetchTutorials();
     if (activeTab === "database")  fetchDbStats();
+    if (activeTab === "security")  fetchSecurity();
   }, [isAdmin, activeTab, page, search, showDeleted, roleFilter]);
 
   // ── API helper ────────────────────────────────────────────────────────────
@@ -202,6 +222,17 @@ export default function AdminDashboard() {
   async function fetchTutorials() {
     const res = await apiFetch("/admin/content/tutorials");
     if (res.ok) setTutorials((await res.json()).tutorials ?? []);
+  }
+
+  async function fetchSecurity() {
+    setSecLoading(true);
+    const [evtRes, sumRes] = await Promise.all([
+      apiFetch(`/admin/security/events?days=${secDays}&per_page=100`),
+      apiFetch(`/admin/security/summary?days=${secDays}`),
+    ]);
+    if (evtRes.ok) setSecEvents((await evtRes.json()).events ?? []);
+    if (sumRes.ok) setSecSummary(await sumRes.json());
+    setSecLoading(false);
   }
 
   async function fetchDbStats() {
@@ -474,6 +505,7 @@ export default function AdminDashboard() {
             { key: "analytics", label: t("tabs.analytics") },
             { key: "content",   label: t("tabs.content")   },
             { key: "database",  label: "Base de données"   },
+            { key: "security",  label: "🔐 Sécurité"        },
           ] as { key: Tab; label: string }[]).map(tabItem => (
             <button
               key={tabItem.key}
@@ -1189,6 +1221,114 @@ export default function AdminDashboard() {
               </>
             ) : (
               <Button onClick={fetchDbStats}>Charger les statistiques</Button>
+            )}
+          </div>
+        )}
+
+        {/* ── Onglet Sécurité ─────────────────────────────────────────────── */}
+        {activeTab === "security" && (
+          <div className="space-y-6">
+            {/* Filtres */}
+            <div className="flex gap-3 items-center flex-wrap">
+              {[1, 7, 14, 30].map(d => (
+                <button key={d}
+                  onClick={() => { setSecDays(d); fetchSecurity(); }}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition
+                    ${secDays === d
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:text-foreground"}`}>
+                  {d === 1 ? "24h" : `${d}j`}
+                </button>
+              ))}
+              <button onClick={fetchSecurity}
+                className="text-xs px-3 py-1.5 rounded-lg border border-border
+                           text-muted-foreground hover:text-foreground transition ml-auto">
+                Actualiser
+              </button>
+            </div>
+
+            {secLoading ? (
+              <p className="text-muted-foreground text-sm">Chargement…</p>
+            ) : (
+              <>
+                {/* Résumé */}
+                {secSummary && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                      { label: "Total",      value: secSummary.total,   color: "" },
+                      { label: "24 dernières heures", value: secSummary.last_24h, color: "text-yellow-500" },
+                      { label: "Critiques",  value: secSummary.by_severity?.critical ?? 0, color: "text-red-500" },
+                      { label: "Élevés",     value: secSummary.by_severity?.high ?? 0,     color: "text-orange-500" },
+                    ].map(s => (
+                      <Card key={s.label}>
+                        <CardContent className="pt-5">
+                          <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Top IPs */}
+                {secSummary && secSummary.top_ips.length > 0 && (
+                  <Card>
+                    <CardHeader><CardTitle className="text-base">Top IPs agressives</CardTitle></CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {secSummary.top_ips.map(({ ip, hits }) => (
+                          <div key={ip} className="flex justify-between text-sm">
+                            <span className="font-mono text-xs">{ip}</span>
+                            <Badge variant="destructive">{hits} requêtes</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Liste des événements */}
+                <Card>
+                  <CardHeader><CardTitle className="text-base">
+                    Événements ({secEvents.length})
+                  </CardTitle></CardHeader>
+                  <CardContent>
+                    {secEvents.length === 0 ? (
+                      <p className="text-muted-foreground text-sm">Aucun événement sur cette période.</p>
+                    ) : (
+                      <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                        {secEvents.map(e => (
+                          <div key={e.id}
+                            className="flex flex-col gap-0.5 border-b pb-2 last:border-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Badge variant={
+                                e.severity === "critical" ? "destructive" :
+                                e.severity === "high"     ? "destructive" : "secondary"
+                              } className={
+                                e.severity === "high"   ? "bg-orange-500/20 text-orange-400 border-orange-500/30" :
+                                e.severity === "medium" ? "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" : ""
+                              }>
+                                {e.severity}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground font-mono">{e.event_type}</span>
+                              <span className="text-xs font-mono ml-auto text-muted-foreground">
+                                {new Date(e.created_at).toLocaleString(i18n.language)}
+                              </span>
+                            </div>
+                            <div className="flex gap-3 text-xs text-muted-foreground flex-wrap">
+                              <span className="font-mono">{e.ip_address}</span>
+                              <span className="font-mono">{e.method} {e.path}</span>
+                            </div>
+                            {e.user_agent && (
+                              <p className="text-xs text-muted-foreground/60 truncate">{e.user_agent}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
             )}
           </div>
         )}
