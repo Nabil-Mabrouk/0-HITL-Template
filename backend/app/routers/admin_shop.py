@@ -12,7 +12,10 @@ Endpoints :
 """
 
 import logging
+import os
+import re
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -28,6 +31,36 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 router = APIRouter(prefix="/admin/shop", tags=["admin-shop"])
+
+# Allowed root directory for product files (mirrors shop.py)
+_PRODUCTS_ROOT = Path(os.environ.get("PRODUCTS_DIR", "/data/products")).resolve()
+# Stripe price ID format
+_STRIPE_PRICE_RE = re.compile(r"^price_[A-Za-z0-9]{6,}$")
+# Valid subscription status values
+_VALID_SUB_STATUSES = {s.value for s in SubscriptionStatus}
+
+
+def _validate_file_path(file_path: str) -> str:
+    """Reject any file_path that escapes the products root directory."""
+    resolved = Path(file_path).resolve()
+    try:
+        resolved.relative_to(_PRODUCTS_ROOT)
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail=f"file_path must be inside the products directory ({_PRODUCTS_ROOT})",
+        )
+    return str(resolved)
+
+
+def _validate_stripe_price_id(price_id: str) -> str:
+    """Validate Stripe price ID format."""
+    if not _STRIPE_PRICE_RE.match(price_id):
+        raise HTTPException(
+            status_code=422,
+            detail="stripe_price_id must match price_… format",
+        )
+    return price_id
 
 
 # ── Products CRUD ─────────────────────────────────────────────────────────────
@@ -55,14 +88,17 @@ def create_product(
     if db.query(Product).filter(Product.slug == body["slug"]).first():
         raise HTTPException(status_code=409, detail="Slug already exists")
 
+    raw_price_id = body.get("stripe_price_id")
+    raw_file     = body.get("file_path")
+
     product = Product(
         name            = body["name"],
         slug            = body["slug"],
         description     = body.get("description"),
         price_cents     = int(body["price_cents"]),
         currency        = body.get("currency", "eur"),
-        stripe_price_id = body.get("stripe_price_id"),
-        file_path       = body.get("file_path"),
+        stripe_price_id = _validate_stripe_price_id(raw_price_id) if raw_price_id else None,
+        file_path       = _validate_file_path(raw_file) if raw_file else None,
         cover_image     = body.get("cover_image"),
         is_active       = body.get("is_active", True),
     )
@@ -90,7 +126,12 @@ def update_product(
     )
     for field in updatable:
         if field in body:
-            setattr(product, field, body[field])
+            value = body[field]
+            if field == "file_path" and value is not None:
+                value = _validate_file_path(value)
+            elif field == "stripe_price_id" and value is not None:
+                value = _validate_stripe_price_id(value)
+            setattr(product, field, value)
 
     db.commit()
     db.refresh(product)
@@ -178,6 +219,12 @@ def list_subscriptions(
     db:       Session = Depends(get_db),
     _:        User    = Depends(require_admin),
 ):
+    if status and status not in _VALID_SUB_STATUSES:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid status. Must be one of: {', '.join(sorted(_VALID_SUB_STATUSES))}",
+        )
+
     query = db.query(Subscription).order_by(desc(Subscription.created_at))
     if status:
         query = query.filter(Subscription.status == status)

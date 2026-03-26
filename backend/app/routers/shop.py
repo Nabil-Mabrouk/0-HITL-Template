@@ -12,7 +12,9 @@ Endpoints :
 
 import logging
 import os
+import re
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import stripe
@@ -23,12 +25,48 @@ from sqlalchemy.orm import Session
 from ..auth.dependencies import get_optional_user, get_verified_user
 from ..config import get_settings
 from ..database import get_db
+from ..limiter import limiter
 from ..models import Product, Purchase, User
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 router = APIRouter(prefix="/shop", tags=["shop"])
+
+# Allowed directory for downloadable product files
+_PRODUCTS_ROOT = Path(os.environ.get("PRODUCTS_DIR", "/data/products")).resolve()
+
+# Validate Stripe price ID format
+_STRIPE_PRICE_RE = re.compile(r"^price_[A-Za-z0-9]{6,}")
+
+
+def _validate_file_path(file_path: str) -> Path:
+    """
+    Resolve and validate that a product file path is within _PRODUCTS_ROOT.
+    Raises HTTPException 422 if the path escapes the allowed directory.
+    """
+    resolved = Path(file_path).resolve()
+    try:
+        resolved.relative_to(_PRODUCTS_ROOT)
+    except ValueError:
+        raise HTTPException(
+            status_code=422,
+            detail=f"file_path must be inside {_PRODUCTS_ROOT}",
+        )
+    return resolved
+
+
+def _validate_return_url(url: str) -> str:
+    """
+    Ensure return_url is within our own frontend origin to prevent open redirects.
+    Accepts only URLs that start with settings.frontend_url.
+    """
+    if not url.startswith(settings.frontend_url):
+        raise HTTPException(
+            status_code=422,
+            detail="return_url must be within the application domain",
+        )
+    return url
 
 # Guard: all endpoints return 404 if shop is disabled
 def _require_shop():
@@ -71,6 +109,7 @@ def _product_out(p: Product) -> dict:
 # ── Checkout ──────────────────────────────────────────────────────────────────
 
 @router.post("/checkout")
+@limiter.limit("10/minute")
 async def create_checkout(
     body:         dict,
     request:      Request,
@@ -100,8 +139,11 @@ async def create_checkout(
     if not product.stripe_price_id:
         raise HTTPException(status_code=503, detail="Product not configured in Stripe")
 
-    success_url = body.get("success_url") or f"{settings.frontend_url}/shop/success"
-    cancel_url  = body.get("cancel_url")  or f"{settings.frontend_url}/shop"
+    # Validate redirects — only allow same-origin URLs to prevent open redirect
+    raw_success = body.get("success_url") or f"{settings.frontend_url}/shop/success"
+    raw_cancel  = body.get("cancel_url")  or f"{settings.frontend_url}/shop"
+    success_url = _validate_return_url(raw_success)
+    cancel_url  = _validate_return_url(raw_cancel)
 
     # Create pending purchase record
     email = (current_user.email if current_user else body.get("email", ""))
@@ -178,23 +220,34 @@ def download_file(token: str, db: Session = Depends(get_db)):
     if not product or not product.file_path:
         raise HTTPException(status_code=404, detail="File not found")
 
-    if not os.path.isfile(product.file_path):
-        logger.error(f"shop.download_file_missing path={product.file_path}")
+    # Resolve path and confirm it stays within the allowed products directory
+    try:
+        safe_path = _validate_file_path(product.file_path)
+    except HTTPException:
+        logger.error(
+            f"shop.download_path_traversal purchase_id={purchase.id} "
+            f"path={product.file_path}"
+        )
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if not safe_path.is_file():
+        logger.error(f"shop.download_file_missing path={safe_path}")
         raise HTTPException(status_code=500, detail="File unavailable")
 
     purchase.download_count += 1
     db.commit()
 
-    filename = os.path.basename(product.file_path)
+    filename = safe_path.name
     logger.info(
         f"shop.download purchase_id={purchase.id} "
         f"count={purchase.download_count}/{purchase.max_downloads}"
     )
 
     return FileResponse(
-        path=product.file_path,
+        path=str(safe_path),
         filename=filename,
         media_type="application/octet-stream",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

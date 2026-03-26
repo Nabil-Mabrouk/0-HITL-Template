@@ -18,12 +18,13 @@ from datetime import datetime, timezone
 from typing import Optional
 
 import stripe
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..auth.dependencies import get_verified_user
 from ..config import get_settings
 from ..database import get_db
+from ..limiter import limiter
 from ..models import Subscription, SubscriptionStatus, User, UserRole
 
 logger = logging.getLogger(__name__)
@@ -116,8 +117,10 @@ def subscription_status(
 # ── Checkout ──────────────────────────────────────────────────────────────────
 
 @router.post("/checkout")
+@limiter.limit("10/minute")
 def create_subscription_checkout(
     body:         dict,
+    request:      Request,
     current_user: User    = Depends(get_verified_user),
     db:           Session = Depends(get_db),
 ):
@@ -129,12 +132,25 @@ def create_subscription_checkout(
     _require_subscription()
     _stripe()
 
+    import re
     price_id = body.get("price_id")
     if not price_id:
         raise HTTPException(status_code=422, detail="price_id required")
+    # Validate Stripe price ID format to prevent parameter injection
+    if not re.match(r"^price_[A-Za-z0-9]{6,}$", price_id):
+        raise HTTPException(status_code=422, detail="Invalid price_id format")
 
-    success_url = body.get("success_url") or f"{settings.frontend_url}/premium?subscribed=1"
-    cancel_url  = body.get("cancel_url")  or f"{settings.frontend_url}/premium"
+    # Validate redirects — only same-origin to prevent open redirect
+    raw_success = body.get("success_url") or f"{settings.frontend_url}/premium?subscribed=1"
+    raw_cancel  = body.get("cancel_url")  or f"{settings.frontend_url}/premium"
+    for url in (raw_success, raw_cancel):
+        if not url.startswith(settings.frontend_url):
+            raise HTTPException(
+                status_code=422,
+                detail="success_url and cancel_url must be within the application domain",
+            )
+    success_url = raw_success
+    cancel_url  = raw_cancel
 
     # Check for existing active subscription
     existing = db.query(Subscription).filter(
@@ -201,12 +217,18 @@ def customer_portal(
     if not sub or not sub.stripe_customer_id:
         raise HTTPException(status_code=404, detail="No active subscription found")
 
-    return_url = body.get("return_url") or f"{settings.frontend_url}/profile"
+    raw_return = body.get("return_url") or f"{settings.frontend_url}/profile"
+    # Validate return_url to prevent open redirect attacks
+    if not raw_return.startswith(settings.frontend_url):
+        raise HTTPException(
+            status_code=422,
+            detail="return_url must be within the application domain",
+        )
 
     try:
         session = stripe.billing_portal.Session.create(
             customer=sub.stripe_customer_id,
-            return_url=return_url,
+            return_url=raw_return,
         )
     except stripe.error.StripeError as e:
         logger.error(f"subscription.portal_error: {e}")
