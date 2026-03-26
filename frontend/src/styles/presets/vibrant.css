@@ -1,0 +1,78 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PRESET: VIBRANT
+ * Light background, rich color, high energy. Invites action.
+ * Personality: modern startup, friendly, conversion-optimized.
+ * Inspired by: Framer, Lemon Squeezy, Resend, Clerk (light mode).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-preset="vibrant"] {
+  /* Surfaces — crisp white with depth through shadow */
+  --background:              oklch(0.985 0.003 264);
+  --foreground:              oklch(0.10  0.010 264);
+  --card:                    oklch(1.00  0.000   0);
+  --card-foreground:         oklch(0.10  0.010 264);
+  --popover:                 oklch(1.00  0.000   0);
+  --popover-foreground:      oklch(0.10  0.010 264);
+
+  /* Interactive — vivid primary draws the eye */
+  --primary:                 var(--theme-primary,   oklch(0.628 0.258 264));
+  --primary-foreground:      oklch(0.99  0.002   0);
+  --secondary:               oklch(0.94  0.015 264);
+  --secondary-foreground:    oklch(0.25  0.010 264);
+  --muted:                   oklch(0.95  0.008 264);
+  --muted-foreground:        oklch(0.50  0.015 264);
+  --accent:                  oklch(0.93  0.020 264);
+  --accent-foreground:       oklch(0.20  0.015 264);
+  --destructive:             oklch(0.58  0.22   25);
+
+  /* Structure */
+  --border:                  oklch(0.88  0.010 264);
+  --input:                   oklch(0.92  0.008 264);
+  --ring:                    var(--theme-primary, oklch(0.628 0.258 264));
+  --radius:                  0.625rem;
+
+  /* Charts — vivid palette for light background */
+  --chart-1:                 var(--theme-primary, oklch(0.628 0.258 264));
+  --chart-2:                 var(--theme-secondary, oklch(0.58 0.27 310));
+  --chart-3:                 oklch(0.56  0.22  180);
+  --chart-4:                 oklch(0.70  0.20   55);
+  --chart-5:                 oklch(0.62  0.24   25);
+
+  /* Sidebar */
+  --sidebar:                 oklch(0.97  0.005 264);
+  --sidebar-foreground:      oklch(0.15  0.010 264);
+  --sidebar-primary:         var(--theme-primary, oklch(0.628 0.258 264));
+  --sidebar-primary-foreground: oklch(0.99 0.002 0);
+  --sidebar-accent:          oklch(0.94  0.015 264);
+  --sidebar-accent-foreground: oklch(0.25 0.010 264);
+  --sidebar-border:          oklch(0.88  0.010 264);
+  --sidebar-ring:            var(--theme-primary, oklch(0.628 0.258 264));
+
+  /* Preset-specific tokens */
+  --glow-primary:            oklch(0.628 0.258 264 / 0.12);
+  --glow-secondary:          oklch(0.58  0.27  310 / 0.08);
+  --shadow-card:             0 1px 4px oklch(0% 0 0 / 0.08),
+                             0 4px 16px oklch(0% 0 0 / 0.06);
+  --shadow-elevated:         0 2px 8px  oklch(0% 0 0 / 0.10),
+                             0 8px 32px oklch(0% 0 0 / 0.08);
+}
+
+/* Component-level: tighter letter-spacing for headings in vibrant mode */
+html[data-preset="vibrant"] h1,
+html[data-preset="vibrant"] h2,
+html[data-preset="vibrant"] h3 {
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+/* Vivid gradient text utility for vibrant preset */
+html[data-preset="vibrant"] .gradient-text {
+  background: linear-gradient(
+    135deg,
+    var(--theme-primary,   oklch(0.628 0.258 264)),
+    var(--theme-secondary, oklch(0.58  0.27  310))
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

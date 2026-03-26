@@ -1,0 +1,6 @@
+/* Import all presets — each targets html[data-preset="..."] so only one is active. */
+@import "./minimal.css";
+@import "./vibrant.css";
+@import "./glass.css";
+@import "./brutal.css";
+@import "./editorial.css";

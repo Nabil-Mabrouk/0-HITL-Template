@@ -1,0 +1,78 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * PRESET: MINIMAL
+ * Dark, refined, monochromatic. Every detail is intentional and quiet.
+ * Personality: precision, calm authority, developer-grade focus.
+ * Inspired by: Linear, Vercel, Raycast, Clerk.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+html[data-preset="minimal"] {
+  /* Surfaces */
+  --background:              oklch(0.09  0.005 264);
+  --foreground:              oklch(0.95  0.005 264);
+  --card:                    oklch(0.13  0.008 264);
+  --card-foreground:         oklch(0.95  0.005 264);
+  --popover:                 oklch(0.13  0.008 264);
+  --popover-foreground:      oklch(0.95  0.005 264);
+
+  /* Interactive */
+  --primary:                 var(--theme-primary,   oklch(0.628 0.258 264));
+  --primary-foreground:      oklch(0.99  0.002 264);
+  --secondary:               oklch(0.18  0.010 264);
+  --secondary-foreground:    oklch(0.80  0.005 264);
+  --muted:                   oklch(0.15  0.008 264);
+  --muted-foreground:        oklch(0.50  0.010 264);
+  --accent:                  oklch(0.18  0.010 264);
+  --accent-foreground:       oklch(0.80  0.005 264);
+  --destructive:             oklch(0.60  0.22   25);
+
+  /* Structure */
+  --border:                  oklch(0.22  0.010 264);
+  --input:                   oklch(0.22  0.010 264);
+  --ring:                    var(--theme-primary, oklch(0.628 0.258 264));
+  --radius:                  0.5rem;
+
+  /* Charts */
+  --chart-1:                 oklch(0.628 0.258 264);
+  --chart-2:                 oklch(0.58  0.27  310);
+  --chart-3:                 oklch(0.54  0.245 200);
+  --chart-4:                 oklch(0.62  0.20  145);
+  --chart-5:                 oklch(0.74  0.18   55);
+
+  /* Sidebar */
+  --sidebar:                 oklch(0.11  0.007 264);
+  --sidebar-foreground:      oklch(0.95  0.005 264);
+  --sidebar-primary:         var(--theme-primary, oklch(0.628 0.258 264));
+  --sidebar-primary-foreground: oklch(0.99 0.002 264);
+  --sidebar-accent:          oklch(0.18  0.010 264);
+  --sidebar-accent-foreground: oklch(0.80 0.005 264);
+  --sidebar-border:          oklch(0.22  0.010 264);
+  --sidebar-ring:            var(--theme-primary, oklch(0.628 0.258 264));
+
+  /* Preset-specific tokens (used by effect components) */
+  --glow-primary:            oklch(0.628 0.258 264 / 0.18);
+  --glow-secondary:          oklch(0.58  0.27  310 / 0.12);
+  --shadow-card:             0 1px 3px oklch(0% 0 0 / 0.5),
+                             0 0 0 1px oklch(100% 0 0 / 0.04);
+  --shadow-elevated:         0 4px 24px oklch(0% 0 0 / 0.4),
+                             0 0 0 1px oklch(100% 0 0 / 0.05);
+}
+
+/* Component-level overrides for minimal preset */
+html[data-preset="minimal"] {
+  /* Cards use a subtle inner border */
+  --card-shadow: var(--shadow-card);
+}
+
+html[data-preset="minimal"] h1,
+html[data-preset="minimal"] h2,
+html[data-preset="minimal"] h3,
+html[data-preset="minimal"] h4 {
+  letter-spacing: -0.03em;
+  font-weight: 600;
+}
+
+html[data-preset="minimal"] code,
+html[data-preset="minimal"] kbd,
+html[data-preset="minimal"] pre {
+  font-family: var(--font-mono, 'Geist Mono', ui-monospace);
+}
