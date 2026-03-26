@@ -2,7 +2,7 @@
 
 ## Ce que nous avons construit
 
-En quatorze chapitres, nous sommes partis d'une page blanche pour arriver à une plateforme complète, sécurisée, pilotée par la donnée, enrichie d'un framework d'agents IA et dotée d'un système de monétisation complet. Le projet **0-HITL** est désormais une réalité technique prête pour la production.
+En quinze chapitres, nous sommes partis d'une page blanche pour arriver à une plateforme complète, sécurisée, pilotée par la donnée, enrichie d'un framework d'agents IA et dotée d'un système de monétisation complet. Le projet **0-HITL** est désormais une réalité technique prête pour la production.
 
 ### L'Architecture Finale
 
@@ -64,6 +64,7 @@ Bien que robuste, la plateforme 0-HITL est une base extensible. Voici les pistes
 *   **Monitoring des Agents :** Dashboard de supervision des performances et de la qualité des sorties IA.
 *   **Blocage actif des attaquants :** Intégrer fail2ban ou les règles IP Traefik pour bloquer automatiquement les IPs signalées par le SecurityMiddleware.
 *   **Monétisation avancée :** Coupons Stripe, offres groupées, upsell automatique après achat, affiliation.
+*   **Maintenance opérationnelle :** Les procédures de sauvegarde, rotation des secrets, monitoring et mises à jour sont documentées dans le [Chapitre 15 — Maintenance en Production](chap_15.md).
 
 ---
 
