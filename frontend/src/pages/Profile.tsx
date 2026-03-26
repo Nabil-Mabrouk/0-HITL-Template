@@ -6,6 +6,18 @@ import SEO from "../components/SEO";
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
+interface Purchase {
+  id:              number;
+  product_name:    string;
+  product_slug:    string | null;
+  amount_paid:     number | null;
+  currency:        string | null;
+  fulfilled_at:    string | null;
+  download_url:    string | null;
+  downloads_left:  number;
+  link_expires_at: string | null;
+}
+
 interface OnboardingProfile {
   flow_id:    string;
   profile:    string;
@@ -34,10 +46,24 @@ export default function Profile() {
   const [onboardingProfile, setOnboardingProfile] = useState<OnboardingProfile | null>(null);
   const [onboardingLoading, setOnboardingLoading] = useState(false);
 
+  const [purchases,        setPurchases]        = useState<Purchase[]>([]);
+  const [purchasesLoading, setPurchasesLoading] = useState(false);
+
   const headers = {
     "Content-Type": "application/json",
     Authorization:  `Bearer ${accessToken}`,
   };
+
+  useEffect(() => {
+    setPurchasesLoading(true);
+    fetch(`${API}/api/shop/purchases`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setPurchases(data))
+      .catch(() => setPurchases([]))
+      .finally(() => setPurchasesLoading(false));
+  }, []);
 
   useEffect(() => {
     setOnboardingLoading(true);
@@ -245,6 +271,59 @@ export default function Profile() {
               </button>
             </form>
           </section>
+
+          {/* ── Mes achats ────────────────────────────────────────────── */}
+          {(purchasesLoading || purchases.length > 0) && (
+            <section className="border border-white/10 rounded-xl p-6">
+              <h2 className="text-lg font-semibold mb-4">Mes achats</h2>
+              {purchasesLoading ? (
+                <p className="text-white/30 text-sm">Chargement…</p>
+              ) : (
+                <div className="space-y-4">
+                  {purchases.map(p => (
+                    <div key={p.id}
+                         className="flex items-start justify-between gap-4
+                                    border-b border-white/5 pb-4 last:border-0 last:pb-0">
+                      <div>
+                        <p className="font-medium text-sm">{p.product_name}</p>
+                        {p.amount_paid && p.currency && (
+                          <p className="text-white/40 text-xs mt-0.5">
+                            {new Intl.NumberFormat("fr-FR", {
+                              style:    "currency",
+                              currency: p.currency.toUpperCase(),
+                            }).format(p.amount_paid / 100)}
+                            {" · "}
+                            {p.fulfilled_at && new Date(p.fulfilled_at).toLocaleDateString("fr-FR")}
+                          </p>
+                        )}
+                        {p.link_expires_at && (
+                          <p className="text-white/30 text-xs">
+                            Lien valable jusqu'au{" "}
+                            {new Date(p.link_expires_at).toLocaleDateString("fr-FR")}
+                            {" · "}{p.downloads_left} téléchargement(s) restant(s)
+                          </p>
+                        )}
+                      </div>
+                      {p.download_url ? (
+                        <a
+                          href={`${API}${p.download_url}`}
+                          className="shrink-0 px-3 py-1.5 bg-white text-black
+                                     rounded-lg text-xs font-medium hover:bg-white/90
+                                     transition"
+                        >
+                          Télécharger
+                        </a>
+                      ) : (
+                        <span className="shrink-0 text-white/30 text-xs">
+                          Lien expiré
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
           {/* ── Zone dangereuse ───────────────────────────────────────── */}
           <section className="border-t border-white/10 pt-8">

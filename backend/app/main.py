@@ -34,6 +34,9 @@ from .routers import content, admin_content, media, admin_db
 from .routers import tracking
 from .routers import analytics
 from .routers import agent_services
+from .routers import shop, shop_webhook, subscription, admin_shop
+from .routers import security as security_router
+from .middleware.security import SecurityMiddleware
 
 #from .middleware.tracking import TrackingMiddleware
 from .scheduler import start_scheduler, stop_scheduler
@@ -194,6 +197,9 @@ app.add_middleware(
     allow_headers     = ["Content-Type", "Authorization", "Accept"],
 )
 
+# Sécurité — détection d'intrusion
+app.add_middleware(SecurityMiddleware)
+
 # Tracking géographique
 #app.add_middleware(TrackingMiddleware)
 
@@ -209,9 +215,15 @@ app.include_router(admin_content.router, prefix="/api")
 app.include_router(media.router,         prefix="/api")
 app.include_router(admin_db.router,      prefix="/api")
 app.include_router(agent_services.router, prefix="/api")  # Services agentic IA
-app.include_router(seo.router)           # sans prefix — /sitemap.xml, /robots.txt
-app.include_router(tracking.router, prefix="/api")
-app.include_router(analytics.router, prefix="/api")
+app.include_router(seo.router)                            # sans prefix — /sitemap.xml, /robots.txt
+app.include_router(tracking.router,    prefix="/api")
+app.include_router(analytics.router,   prefix="/api")
+app.include_router(security_router.router, prefix="/api")
+# Monetization — activated via env flags
+app.include_router(shop_webhook.router,  prefix="/api")   # /api/shop/webhook (no auth — Stripe sig)
+app.include_router(shop.router,          prefix="/api")   # /api/shop/…
+app.include_router(subscription.router,  prefix="/api")   # /api/subscription/…
+app.include_router(admin_shop.router,    prefix="/api")   # /api/admin/shop/…
 # ── Health check ─────────────────────────────────────────────────────────────
 
 @app.get("/health")

@@ -202,6 +202,35 @@ async def send_invitation_email(
         html=html
     )
 
+async def send_purchase_confirmation(
+    email:          str,
+    product_name:   str,
+    download_token: str,
+    expires_at,
+) -> bool:
+    """
+    Envoie la confirmation d'achat avec le lien de téléchargement sécurisé.
+
+    Args:
+        email:          Email de l'acheteur
+        product_name:   Nom du produit acheté
+        download_token: Token pour le lien de téléchargement
+        expires_at:     Datetime d'expiration du lien
+    """
+    download_url = f"{settings.frontend_url}/api/shop/download/{download_token}"
+    html = template_env.get_template("purchase_confirmation.html").render(
+        product_name=product_name,
+        download_url=download_url,
+        expires_at=expires_at.strftime("%d/%m/%Y à %H:%M UTC") if expires_at else "48h",
+        app_name=settings.email_from_name,
+    )
+    return await send_email(
+        to=email,
+        subject=f"Votre achat : {product_name}",
+        html=html,
+    )
+
+
 async def send_admin_welcome_email(email: str, full_name: str,
                                    token: str) -> bool:
     url  = f"{settings.frontend_url}/reset-password?token={token}"
