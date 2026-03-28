@@ -62,10 +62,11 @@ export default function Navbar() {
         {/* Logo */}
         <button
           onClick={() => navigate("/")}
-          className="font-bold text-white text-lg tracking-tight
-                     hover:opacity-80 transition"
+          className="font-heading text-white text-xl tracking-tight
+                     hover:opacity-80 transition-all duration-300 bg-clip-text 
+                     text-transparent bg-gradient-to-r from-primary to-secondary"
         >
-          0-HITL
+          logo
         </button>
 
         {/* Centre — liens de nav */}
