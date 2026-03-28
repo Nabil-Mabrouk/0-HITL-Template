@@ -1,12 +1,12 @@
-FROM node:20-alpine AS deps
-WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --only=production --legacy-peer-deps
-
+# ── Stage 1 : build ──────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Installer les dépendances (devDeps incluses — requises par vite/tsc/tailwind)
 COPY package.json package-lock.json ./
 RUN npm ci --legacy-peer-deps
+
+# Copier les sources et injecter les variables de build
 COPY . .
 ARG VITE_API_URL
 ARG VITE_SITE_URL
@@ -22,12 +22,20 @@ ENV VITE_AUTH_CHANNEL_DIRECT=$VITE_AUTH_CHANNEL_DIRECT
 ENV VITE_AUTH_CHANNEL_ONBOARDING=$VITE_AUTH_CHANNEL_ONBOARDING
 RUN npm run build
 
+# ── Stage 2 : production ──────────────────────────────────────────────────────
 FROM node:20-alpine AS production
+
+# Utilisateur non-root pour la sécurité
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-WORKDIR /app
-COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
-COPY --from=builder --chown=appuser:appgroup /app/package.json ./
+
+# Installer `serve` globalement (avant le switch utilisateur)
 RUN npm install -g serve
+
+WORKDIR /app
+
+# Copier uniquement le build statique — pas de node_modules en production
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+
 USER appuser
 EXPOSE 3000
 CMD ["serve", "-s", "dist", "-l", "3000"]
