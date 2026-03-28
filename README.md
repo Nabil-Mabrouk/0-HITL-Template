@@ -1,211 +1,371 @@
-# Zero-Human In The Loop — Agentic AI Platform Template
+# 0-HITL — Agentic AI Platform Template
 
-Un template fullstack complet pour lancer une plateforme web avec gestion des utilisateurs, contenu pédagogique, services d'IA agentique et **monétisation intégrée**.
+Template fullstack complet pour lancer une plateforme web avec gestion des utilisateurs, contenu, services d'IA agentique et monétisation intégrée.
+
+**Stack** : FastAPI · PostgreSQL · React 19 · TypeScript · TailwindCSS · Docker · Traefik
+
+---
 
 ## Fonctionnalités
 
-### Backend (FastAPI)
-- Authentification utilisateur (JWT, refresh tokens, OAuth2)
-- Système de rôles hiérarchique : `anonymous → waitlist → user → premium → admin`
-- Base de données PostgreSQL avec migrations Alembic
-- API REST complète avec rate limiting (SlowAPI)
-- Services agentic IA modulaires (orchestrateur multi-agents, mémoire, garde-fous)
-- Email transactionnel (vérification, reset MDP, invitations, confirmations d'achat)
-- Tracking géographique anonymisé (GeoIP, RGPD)
-- Analytics (cartes, timelines, stats)
-- Dashboard admin (utilisateurs, contenu, analytics, sécurité, boutique)
-- **Monétisation** : vente de produits numériques + abonnements Stripe (activables via `.env`)
-- **Sécurité** : middleware de détection d'intrusion, journalisation des événements, dashboard
+| Domaine | Ce qui est inclus |
+|---|---|
+| **Auth** | JWT + refresh tokens, rôles hiérarchiques, vérification email, reset MDP |
+| **Canaux d'inscription** | Waitlist avec invitations / Inscription directe / Onboarding questionnaire |
+| **Contenu** | CMS Markdown, tutoriaux, leçons, accès premium |
+| **Monétisation** | Boutique produits numériques + abonnements Stripe (feature flags) |
+| **IA agentique** | Orchestrateur multi-agents, mémoire, garde-fous, dashboard |
+| **Admin** | Utilisateurs, waitlist, analytics, sécurité, boutique |
+| **SEO** | Sitemap dynamique, robots.txt, llms.txt, meta tags |
+| **i18n** | Français / Anglais |
+| **Infra** | Docker Compose (dev hot-reload + prod multi-stage), Traefik HTTPS auto |
 
-### Frontend (React 19 / TypeScript)
-- Landing page responsive (dark mode)
-- Authentification complète (login, register, verify, reset)
-- Système de canaux d'auth configurable (waitlist / direct / onboarding)
-- Onboarding dynamique avec profilage utilisateur
-- Université virtuelle (tutoriaux, leçons Markdown, accès premium)
-- Page profil (infos, mot de passe, achats, lien de téléchargement)
-- **Boutique** (`/shop`) : catalogue produits, checkout Stripe, page succès
-- **Premium** (`/premium`) : plans d'abonnement, portail Stripe, statut
-- Dashboard admin : onglets utilisateurs, waitlist, analytics, sécurité, boutique
-- SEO avancé (sitemap dynamique, robots.txt, llms.txt, react-helmet-async)
-- Internationalisation i18n (FR/EN)
+---
 
-### Services Agentic IA
-- Architecture modulaire (services YAML + agents Python)
-- Orchestrateur multi-étapes avec partage de contexte
-- Mémoire à court/long terme
-- Garde-fous (validation entrées/sorties)
-- Historique complet des exécutions
-- Dashboard unifié
+## Démarrage rapide
 
-### Infrastructure
-- Docker Compose (dev avec hot-reload, prod multi-stage optimisé)
-- Traefik v3 (HTTPS automatique Let's Encrypt, rate-limit, access logs JSON)
-- Scheduler de maintenance DB (nettoyage automatique)
-- Script de personnalisation des placeholders (`{{PROJECT_NAME}}`, etc.)
-
-## Structure du Projet
-
-```
-.
-├── backend/
-│   ├── app/
-│   │   ├── agents/           # Framework agentic IA
-│   │   │   ├── core/         # Orchestrateur, mémoire, garde-fous
-│   │   │   ├── services/     # Services modulaires
-│   │   │   └── tools/        # Outils disponibles
-│   │   ├── auth/             # JWT, sécurité, dépendances
-│   │   ├── email/            # Service SMTP + templates Jinja2
-│   │   ├── middleware/        # SecurityMiddleware, TrackingMiddleware
-│   │   ├── routers/          # Endpoints API
-│   │   │   ├── auth.py
-│   │   │   ├── users.py
-│   │   │   ├── admin.py
-│   │   │   ├── content.py / admin_content.py
-│   │   │   ├── shop.py           # Boutique produits numériques
-│   │   │   ├── shop_webhook.py   # Webhook Stripe (signature vérifiée)
-│   │   │   ├── subscription.py   # Abonnements Stripe
-│   │   │   ├── admin_shop.py     # Admin boutique + MRR
-│   │   │   └── security.py       # Admin événements sécurité
-│   │   ├── models.py         # Tous les modèles SQLAlchemy
-│   │   ├── config.py         # Settings Pydantic (chargés depuis .env)
-│   │   └── main.py           # App FastAPI, middleware, routers
-│   ├── alembic/              # Migrations DB
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Shop.tsx          # Boutique
-│   │   │   ├── ShopSuccess.tsx   # Confirmation achat
-│   │   │   ├── Premium.tsx       # Abonnements
-│   │   │   ├── Profile.tsx       # Profil + Mes achats
-│   │   │   └── admin/Dashboard.tsx
-│   │   ├── components/       # SEO, WaitlistForm, MarkdownRenderer…
-│   │   ├── auth/             # AuthRouter (canaux d'auth)
-│   │   └── context/          # AuthContext
-│   └── public/               # robots.txt, llms.txt
-├── docker-compose.yml
-├── docker-compose.dev.yml
-├── docker-compose.prod.yml
-├── .env.example
-└── scripts/
-    └── replace_placeholders.py
-```
-
-## Installation Rapide
-
-### 1. Cloner et configurer
+### Étape 1 — Cloner et personnaliser
 
 ```bash
-git clone https://github.com/Nabil-Mabrouk/0-HITL-Template my-project
+git clone https://github.com/your-org/0-hitl-template my-project
 cd my-project
+```
+
+Remplir `project.json` avec les valeurs de votre projet :
+
+```json
+{
+  "PROJECT_NAME":         "my-app",
+  "PROJECT_DISPLAY_NAME": "My App",
+  "PROJECT_SLUG":         "myapp",
+  "PROJECT_DOMAIN":       "myapp.com",
+  "DEFAULT_EMAIL":        "contact@myapp.com",
+  "PROJECT_TAGLINE":      "Your tagline here",
+  "PROJECT_DESCRIPTION":  "What your platform does",
+  "PROJECT_AUTHOR":       "Your Name"
+}
+```
+
+Appliquer les remplacements dans tous les fichiers sources :
+
+```bash
+python scripts/setup_project.py --dry-run   # Prévisualiser
+python scripts/setup_project.py             # Appliquer
+```
+
+### Étape 2 — Configurer l'environnement
+
+```bash
 cp .env.example .env
-# Éditer .env : SECRET_KEY, POSTGRES_*, SMTP_*, ADMIN_EMAIL, ADMIN_PASSWORD
 ```
 
-### 2. Lancer en développement
+Remplir `.env` avec les valeurs minimales requises :
+
+```env
+# Base de données
+POSTGRES_USER=myapp
+POSTGRES_PASSWORD=change_me_strong_password
+POSTGRES_DB=myapp
+
+# JWT (générer avec : openssl rand -hex 32)
+SECRET_KEY=your_64_char_random_secret_here
+
+# Admin initial
+ADMIN_EMAIL=admin@myapp.com
+ADMIN_PASSWORD=Admin@SecurePass123
+
+# Email (pour la vérification d'email et le reset MDP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your@gmail.com
+SMTP_PASSWORD=your_app_password   # Mot de passe d'application Gmail
+EMAIL_FROM=your@gmail.com
+EMAIL_FROM_NAME=My App
+```
+
+---
+
+## Développement local
+
+### Lancer les services
 
 ```bash
-docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
-- Frontend : http://localhost:5173
-- Backend API : http://localhost:8000
-- Docs API : http://localhost:8000/docs
+Cela démarre :
+- **Frontend** → http://localhost:5173 (hot-reload Vite)
+- **Backend**  → http://localhost:8000 (hot-reload Uvicorn)
+- **Docs API** → http://localhost:8000/docs
+- **PostgreSQL** → port 5433 (accès local)
 
-### 3. Appliquer les migrations
+### Appliquer les migrations (première fois ou après un `alembic revision`)
 
 ```bash
-docker-compose run --rm migrate alembic upgrade head
+docker-compose -f docker-compose.dev.yml run --rm migrate
 ```
 
-### 4. Déploiement production
+### Créer une nouvelle migration après modification des modèles
+
+```bash
+docker-compose -f docker-compose.dev.yml run --rm migrate \
+  alembic revision --autogenerate -m "description"
+```
+
+### Arrêter les services
+
+```bash
+docker-compose -f docker-compose.dev.yml down          # Arrêter
+docker-compose -f docker-compose.dev.yml down -v       # Arrêter + supprimer les volumes
+```
+
+### Logs en temps réel
+
+```bash
+docker-compose -f docker-compose.dev.yml logs -f backend
+docker-compose -f docker-compose.dev.yml logs -f frontend
+```
+
+### Tests
+
+```bash
+# Backend (pytest, SQLite en mémoire — pas besoin de Docker)
+cd backend
+pip install -r requirements-test.txt
+pytest                        # Tous les tests
+pytest tests/unit/            # Tests unitaires uniquement
+pytest tests/integration/     # Tests d'intégration uniquement
+pytest --cov=app              # Avec couverture
+
+# Frontend (Vitest + jsdom)
+cd frontend
+npm install
+npm run test                  # One-shot
+npm run test:watch            # Mode watch
+npm run test:coverage         # Avec couverture
+```
+
+---
+
+## Production
+
+### Prérequis serveur
+
+- VPS Ubuntu 22.04+ avec Docker et Docker Compose v2
+- Domaine configuré avec deux entrées DNS :
+  - `myapp.com` → IP du serveur
+  - `api.myapp.com` → IP du serveur
+- Ports 80 et 443 ouverts
+
+### Étape 1 — Configurer Traefik (reverse proxy + HTTPS)
+
+Traefik est géré en dehors de ce projet. Sur le serveur :
+
+```bash
+# Créer le réseau Docker partagé
+docker network create proxy-net
+
+# Lancer Traefik (une fois, globalement sur le serveur)
+docker run -d \
+  --name traefik \
+  --network proxy-net \
+  -p 80:80 -p 443:443 \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -v /etc/traefik:/etc/traefik \
+  traefik:v3 \
+  --api.insecure=false \
+  --providers.docker=true \
+  --providers.docker.exposedbydefault=false \
+  --entrypoints.web.address=:80 \
+  --entrypoints.websecure.address=:443 \
+  --certificatesresolvers.letsencrypt.acme.email=contact@myapp.com \
+  --certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json \
+  --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+```
+
+### Étape 2 — Préparer le fichier de production
 
 ```bash
 cp .env.example .env.prod
-# Éditer .env.prod avec toutes les variables de production
-docker-compose -f docker-compose.prod.yml up -d
 ```
 
-## Canaux d'Authentification
+Remplir `.env.prod` avec les valeurs de production :
+
+```env
+ENVIRONMENT=production
+
+# Base de données
+POSTGRES_USER=myapp_prod
+POSTGRES_PASSWORD=very_strong_random_password
+POSTGRES_DB=myapp_prod
+
+# JWT (OBLIGATOIRE : différent du dev !)
+SECRET_KEY=generate_with_openssl_rand_hex_32
+
+# Admin
+ADMIN_EMAIL=admin@myapp.com
+ADMIN_PASSWORD=AdminProdSecure@2026
+
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=noreply@myapp.com
+SMTP_PASSWORD=gmail_app_password
+EMAIL_FROM=noreply@myapp.com
+EMAIL_FROM_NAME=My App
+
+# Frontend URL (utilisé dans les emails)
+FRONTEND_URL=https://myapp.com
+
+# SEO
+ROBOTS_ALLOW_INDEXING=true
+
+# Monétisation (optionnel)
+MONETIZATION_SHOP=false
+MONETIZATION_SUBSCRIPTION=false
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_PUBLIC_KEY=pk_live_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+### Étape 3 — Déployer
+
+```bash
+# Construire et lancer en arrière-plan
+docker-compose -f docker-compose.prod.yml up --build -d
+
+# Appliquer les migrations
+docker-compose -f docker-compose.prod.yml run --rm migrate
+
+# Vérifier que les services tournent
+docker-compose -f docker-compose.prod.yml ps
+docker-compose -f docker-compose.prod.yml logs -f backend
+```
+
+Le site est accessible sur `https://myapp.com` avec HTTPS automatique (Let's Encrypt).
+
+### Mettre à jour en production
+
+```bash
+git pull origin main
+docker-compose -f docker-compose.prod.yml up --build -d
+docker-compose -f docker-compose.prod.yml run --rm migrate
+```
+
+### Sauvegarder la base de données
+
+```bash
+# Dump manuel
+docker-compose -f docker-compose.prod.yml exec db \
+  pg_dump -U myapp_prod myapp_prod > backup_$(date +%Y%m%d).sql
+
+# Restaurer
+cat backup_20260101.sql | docker-compose -f docker-compose.prod.yml exec -T db \
+  psql -U myapp_prod myapp_prod
+```
+
+---
+
+## Personnalisation
+
+### Canaux d'authentification
 
 Activez les canaux souhaités dans `.env` :
 
 ```env
-AUTH_CHANNEL_WAITLIST=true       # Liste d'attente avec invitations
-AUTH_CHANNEL_DIRECT=false        # Inscription directe
-AUTH_CHANNEL_ONBOARDING=false    # Inscription via questionnaire
+AUTH_CHANNEL_WAITLIST=true       # Liste d'attente avec invitations admin
+AUTH_CHANNEL_DIRECT=false        # Inscription directe sans invitation
+AUTH_CHANNEL_ONBOARDING=false    # Inscription via questionnaire de profilage
 ```
 
-## Monétisation
+### Style visuel (thème)
 
-Deux modèles économiques, activables indépendamment via `.env` :
+Le fichier `frontend/src/theme.config.ts` est le **point unique de contrôle** du style :
 
-### Boutique de produits numériques (`MONETIZATION_SHOP=true`)
+```typescript
+const themeConfig = {
+  preset:  'minimal',          // 'minimal' | 'vibrant' | 'glass' | 'brutal' | 'editorial'
+  colors:  { primary, secondary, accent },
+  fonts:   { heading, body, mono },
+  geometry: 'rounded',         // 'sharp' | 'soft' | 'rounded' | 'pill'
+  motion:   'smooth',          // 'none' | 'subtle' | 'smooth' | 'playful'
+  effects:  { heroBackground, cardStyle, buttonStyle },
+}
+```
+
+Pour un restyling assisté par IA, voir [`frontend_prompt.md`](frontend_prompt.md).
+
+### Monétisation Stripe
 
 ```env
-MONETIZATION_SHOP=true
-STRIPE_SECRET_KEY=sk_live_…
-STRIPE_PUBLIC_KEY=pk_live_…
-STRIPE_WEBHOOK_SECRET=whsec_…
-DOWNLOAD_LINK_EXPIRE_HOURS=48
-DOWNLOAD_MAX_ATTEMPTS=5
+MONETIZATION_SHOP=true           # Boutique produits numériques
+MONETIZATION_SUBSCRIPTION=true   # Abonnements (attribue le rôle `premium`)
+MONETIZATION_TRIAL_DAYS=14       # Essai gratuit (0 = sans essai)
 ```
 
-Flux : `POST /api/shop/checkout` → Stripe Checkout → webhook → email avec lien de téléchargement sécurisé.
+Configurer le webhook Stripe :
+- URL : `https://api.myapp.com/api/shop/webhook`
+- Événements : `checkout.session.completed`, `customer.subscription.*`, `invoice.payment_*`
 
-### Abonnements premium (`MONETIZATION_SUBSCRIPTION=true`)
+---
 
-```env
-MONETIZATION_SUBSCRIPTION=true
-MONETIZATION_TRIAL_DAYS=14       # 0 = pas d'essai gratuit
-STRIPE_SECRET_KEY=sk_live_…
-STRIPE_WEBHOOK_SECRET=whsec_…
+## Structure du projet
+
+```
+.
+├── project.json              ← Valeurs de personnalisation (à remplir en premier)
+├── scripts/
+│   └── setup_project.py      ← Script unique d'initialisation
+├── backend/
+│   ├── app/
+│   │   ├── auth/             JWT, sécurité, dépendances
+│   │   ├── routers/          Endpoints API (auth, users, admin, content, shop…)
+│   │   ├── agents/           Framework IA (orchestrateur, mémoire, garde-fous)
+│   │   ├── email/            Service SMTP + templates Jinja2
+│   │   ├── middleware/        Sécurité, tracking
+│   │   ├── models.py         Modèles SQLAlchemy
+│   │   ├── config.py         Settings Pydantic (depuis .env)
+│   │   └── main.py           App FastAPI
+│   ├── alembic/              Migrations DB
+│   ├── tests/                Tests pytest (unit + integration)
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── theme.config.ts   ← Configuration visuelle centrale
+│   │   ├── pages/            Toutes les pages React
+│   │   ├── components/       Composants réutilisables
+│   │   ├── context/          AuthContext
+│   │   └── styles/presets/   Thèmes CSS (minimal, vibrant, glass…)
+│   └── public/locales/       Traductions i18n (fr / en)
+├── e2e/                      Tests Playwright
+├── docker-compose.dev.yml    Développement (hot-reload)
+├── docker-compose.prod.yml   Production (Traefik, HTTPS)
+├── .env.example              Template des variables d'environnement
+└── frontend_prompt.md        ← Prompt IA pour restyler le frontend
 ```
 
-Flux : checkout → abonnement actif → rôle `premium` automatiquement accordé/retiré via webhooks Stripe.
+---
 
-**Configurer le webhook Stripe :**
-```
-https://api.votre-domaine.com/api/shop/webhook
-Événements : checkout.session.completed, customer.subscription.*, invoice.payment_*
-```
-
-## Sécurité
-
-Le `SecurityMiddleware` surveille en temps réel :
-- Scans de chemins sensibles (`.git`, `.env`, `wp-*`, `.php`, etc.)
-- User-agents de scanners connus (sqlmap, nikto, nmap, nuclei…)
-- Tentatives d'injection (SQL, XSS, template, commande)
-
-Tous les événements sont journalisés en base de données et consultables dans le Dashboard Admin → onglet **Sécurité**.
-
-## Personnalisation du Template
-
-```bash
-# Remplacer les placeholders dans le projet
-python scripts/replace_placeholders.py --root . --dry-run
-
-# Placeholders disponibles :
-# {{PROJECT_NAME}}, {{PROJECT_SLUG}}, {{PROJECT_DOMAIN}}
-# {{PROJECT_DISPLAY_NAME}}, {{DEFAULT_EMAIL}}
-```
-
-## Variables d'Environnement Clés
+## Variables d'environnement clés
 
 | Variable | Description | Requis |
-|---|---|---|
-| `SECRET_KEY` | Clé JWT (openssl rand -hex 32) | Oui |
-| `POSTGRES_USER/PASSWORD/DB` | Credentials PostgreSQL | Oui |
-| `SMTP_HOST/USER/PASSWORD` | Serveur email | Oui (prod) |
-| `ADMIN_EMAIL/PASSWORD` | Bootstrap admin | Recommandé |
-| `AUTH_CHANNEL_*` | Canaux d'inscription actifs | Non |
-| `MONETIZATION_SHOP` | Activer la boutique | Non |
-| `MONETIZATION_SUBSCRIPTION` | Activer les abonnements | Non |
+|---|---|:---:|
+| `SECRET_KEY` | Clé JWT — `openssl rand -hex 32` | ✅ |
+| `POSTGRES_USER/PASSWORD/DB` | Credentials PostgreSQL | ✅ |
+| `ADMIN_EMAIL/PASSWORD` | Compte admin initial | ✅ |
+| `SMTP_HOST/PORT/USER/PASSWORD` | Serveur email sortant | ✅ prod |
+| `FRONTEND_URL` | URL du frontend (pour les emails) | ✅ prod |
+| `AUTH_CHANNEL_WAITLIST` | Activer la liste d'attente | ❌ |
+| `AUTH_CHANNEL_DIRECT` | Activer l'inscription directe | ❌ |
+| `MONETIZATION_SHOP` | Activer la boutique | ❌ |
+| `MONETIZATION_SUBSCRIPTION` | Activer les abonnements | ❌ |
 | `STRIPE_SECRET_KEY` | Clé secrète Stripe | Si monétisation |
 | `STRIPE_WEBHOOK_SECRET` | Secret webhook Stripe | Si monétisation |
+| `GEOIP_DB_PATH` | Chemin vers GeoLite2-City.mmdb | ❌ |
 
-## Documentation
+---
+
+## Documentation technique
 
 - [Architecture détaillée](docs/architecture.md)
 - [Chapitre 01 — Infrastructure Docker](docs/chapters/chap_01.md)
@@ -215,11 +375,12 @@ python scripts/replace_placeholders.py --root . --dry-run
 - [Chapitre 10 — SEO](docs/chapters/chap_10.md)
 - [Chapitre 12 — Framework Agentic IA](docs/chapters/chap_12.md)
 - [Chapitre 14 — Monétisation Stripe](docs/chapters/chap_14.md)
+- [Chapitre 15 — Maintenance production](docs/chapters/chap_15.md)
+
+---
 
 ## Licence
 
 MIT — Voir [LICENSE](LICENSE)
 
----
-
-**Version** : 1.2.0 — **Dernière mise à jour** : 2026-03-26
+**Version** : 1.3.0 · **Mise à jour** : 2026-03-28

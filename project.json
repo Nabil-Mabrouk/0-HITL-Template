@@ -1,0 +1,12 @@
+{
+  "_comment": "Remplissez ce fichier AVANT de lancer scripts/setup_project.py",
+
+  "PROJECT_NAME":         "my-app",
+  "PROJECT_DISPLAY_NAME": "My App",
+  "PROJECT_SLUG":         "myapp",
+  "PROJECT_DOMAIN":       "myapp.com",
+  "DEFAULT_EMAIL":        "contact@myapp.com",
+  "PROJECT_TAGLINE":      "Your compelling tagline here",
+  "PROJECT_DESCRIPTION":  "A description of what your platform does",
+  "PROJECT_AUTHOR":       "Your Name"
+}
