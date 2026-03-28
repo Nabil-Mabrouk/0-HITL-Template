@@ -25,6 +25,7 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import type { UseInViewOptions } from 'framer-motion'
 import { fadeInVariants } from '../../lib/motion'
 
 interface FadeInProps {
@@ -36,7 +37,7 @@ interface FadeInProps {
   /** Animer une seule fois (défaut: true) */
   once?:      boolean
   /** Marge avant déclenchement — négatif = déclenche avant d'atteindre l'élément */
-  margin?:    string
+  margin?:    UseInViewOptions['margin']
 }
 
 export function FadeIn({
@@ -44,10 +45,10 @@ export function FadeIn({
   delay   = 0,
   className,
   once    = true,
-  margin  = '-60px',
+  margin  = '-60px' as UseInViewOptions['margin'],
 }: FadeInProps) {
   const ref    = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once, margin: margin as Parameters<typeof useInView>[1]['margin'] })
+  const inView = useInView(ref, { once, margin })
 
   const variants = delay > 0
     ? {
