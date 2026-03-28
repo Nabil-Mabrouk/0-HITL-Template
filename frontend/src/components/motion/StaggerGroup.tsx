@@ -25,6 +25,7 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import type { UseInViewOptions } from 'framer-motion'
 import { staggerContainerVariants, fadeInVariants } from '../../lib/motion'
 
 interface StaggerGroupProps {
@@ -32,17 +33,17 @@ interface StaggerGroupProps {
   className?: string
   /** Animer une seule fois (défaut: true) */
   once?:      boolean
-  margin?:    string
+  margin?:    UseInViewOptions['margin']
 }
 
 export function StaggerGroup({
   children,
   className,
   once   = true,
-  margin = '-80px',
+  margin = '-80px' as UseInViewOptions['margin'],
 }: StaggerGroupProps) {
   const ref    = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once, margin: margin as Parameters<typeof useInView>[1]['margin'] })
+  const inView = useInView(ref, { once, margin })
 
   return (
     <motion.div

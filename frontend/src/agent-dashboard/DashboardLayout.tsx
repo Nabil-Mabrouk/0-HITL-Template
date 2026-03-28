@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ServiceCard } from './ServiceCard';
@@ -18,7 +18,7 @@ interface Service {
 }
 
 export default function DashboardLayout() {
-  const { user, isAdmin } = useAuth();
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [services, setServices] = useState<Service[]>([]);
   const [filteredServices, setFilteredServices] = useState<Service[]>([]);
@@ -276,7 +276,7 @@ export default function DashboardLayout() {
       <footer className="border-t bg-white mt-12">
         <div className="container mx-auto px-6 py-6">
           <p className="text-gray-600 text-sm text-center">
-            © {new Date().getFullYear()} {{PROJECT_NAME}}. Tous droits réservés.
+            © {new Date().getFullYear()} {'{{PROJECT_NAME}}'}. Tous droits réservés.
           </p>
           <p className="text-gray-500 text-xs text-center mt-2">
             Système agentic IA • Version 1.0.0

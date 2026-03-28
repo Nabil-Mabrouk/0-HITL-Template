@@ -24,6 +24,7 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import type { UseInViewOptions } from 'framer-motion'
 import { slideInVariants } from '../../lib/motion'
 
 interface SlideInProps {
@@ -32,7 +33,7 @@ interface SlideInProps {
   delay?:     number
   className?: string
   once?:      boolean
-  margin?:    string
+  margin?:    UseInViewOptions['margin']
 }
 
 export function SlideIn({
@@ -41,10 +42,10 @@ export function SlideIn({
   delay   = 0,
   className,
   once    = true,
-  margin  = '-60px',
+  margin  = '-60px' as UseInViewOptions['margin'],
 }: SlideInProps) {
   const ref      = useRef<HTMLDivElement>(null)
-  const inView   = useInView(ref, { once, margin: margin as Parameters<typeof useInView>[1]['margin'] })
+  const inView   = useInView(ref, { once, margin })
   const variants = slideInVariants(from)
 
   const resolvedVariants = delay > 0

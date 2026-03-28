@@ -6,7 +6,8 @@
  */
 
 import React from "react";
-import { render, RenderOptions } from "@testing-library/react";
+import { render } from "@testing-library/react";
+import type { RenderOptions } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 // Wrapper minimal avec Router pour les composants qui utilisent react-router
