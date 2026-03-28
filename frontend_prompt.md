@@ -161,23 +161,93 @@ La `Landing.tsx` actuelle est un placeholder minimal (badge + titre + waitlist f
 
 #### Composants disponibles à importer
 ```tsx
-// Effets de fond (positionner dans un container `relative`)
+// ── Animations scroll-triggered (Framer Motion) ───────────────────────────
+import { FadeIn, SlideIn, StaggerGroup, StaggerItem, PageTransition }
+  from "../components/motion"
+// Utilitaires pour whileHover / whileTap sur motion.div
+import { hoverScale, tapScale } from "../lib/motion"
+import { motion } from "framer-motion"
+
+// ── Effets de fond (positionner dans un container `relative`) ─────────────
 import { GlowOrbs, MeshGradient, GridDots, NoiseOverlay, AnimatedBorder }
   from "../components/effects"
 
-// Composants fonctionnels
-import { WaitlistForm } from "../components/WaitlistForm"  // formulaire d'inscription waitlist
-import SEO from "../components/SEO"                         // balises meta/og
+// ── Composants fonctionnels ───────────────────────────────────────────────
+import { WaitlistForm } from "../components/WaitlistForm"  // formulaire waitlist
+import SEO              from "../components/SEO"           // balises meta/og
 import { Button } from "../components/ui/button"
 import { Card }   from "../components/ui/card"
 import { Badge }  from "../components/ui/badge"
 
-// Routing
+// ── Routing & i18n ────────────────────────────────────────────────────────
 import { useNavigate } from "react-router-dom"
-
-// Traductions
 import { useTranslation } from "react-i18next"
 ```
+
+#### Référence rapide des composants motion
+
+| Composant | Usage | Paramètres clés |
+|---|---|---|
+| `<FadeIn>` | Fondu + translation verticale au scroll | `delay`, `once`, `margin` |
+| `<SlideIn from="left">` | Glissement depuis un bord au scroll | `from`, `delay`, `once` |
+| `<StaggerGroup>` | Conteneur qui séquence ses enfants | `once`, `margin` |
+| `<StaggerItem>` | Enfant direct de StaggerGroup | — |
+| `<PageTransition>` | Enveloppe la page pour la transition de route | — |
+| `motion.div` | Élément Framer Motion brut pour des besoins custom | `whileHover`, `whileTap`, `animate` |
+
+```tsx
+// FadeIn — apparition simple au scroll
+<FadeIn delay={0.1}>
+  <p>Ce texte apparaît quand il entre dans le viewport</p>
+</FadeIn>
+
+// SlideIn — section deux colonnes
+<div className="grid grid-cols-2 gap-12">
+  <SlideIn from="left">  <TextBlock />   </SlideIn>
+  <SlideIn from="right" delay={0.15}> <ImageBlock /> </SlideIn>
+</div>
+
+// StaggerGroup — grille de cartes séquentielles
+<StaggerGroup className="grid grid-cols-3 gap-6">
+  {features.map(f => (
+    <StaggerItem key={f.id}>
+      <FeatureCard {...f} />
+    </StaggerItem>
+  ))}
+</StaggerGroup>
+
+// PageTransition — envelopper le contenu racine de la page
+export default function Landing() {
+  return (
+    <PageTransition>
+      <main>…</main>
+    </PageTransition>
+  )
+}
+
+// motion.div avec hover — carte interactive
+<motion.div whileHover={hoverScale} whileTap={tapScale}>
+  <Card>…</Card>
+</motion.div>
+
+// Effet de fond avec contenu animé par-dessus
+<section className="relative overflow-hidden py-24">
+  <GlowOrbs />
+  <div className="relative z-10 max-w-6xl mx-auto px-6">
+    <FadeIn><h2>Section titre</h2></FadeIn>
+    <StaggerGroup className="grid grid-cols-3 gap-6 mt-12">
+      <StaggerItem><Card>…</Card></StaggerItem>
+      <StaggerItem><Card>…</Card></StaggerItem>
+      <StaggerItem><Card>…</Card></StaggerItem>
+    </StaggerGroup>
+  </div>
+</section>
+```
+
+> **Note motion** : tous les comportements (durée, distance, ressorts, stagger delay)
+> sont automatiquement adaptés au niveau `motion` défini dans `theme.config.ts`.
+> Changer `motion: 'playful'` en `motion: 'subtle'` dans le config suffit pour
+> rendre toutes les animations plus discrètes, sans toucher aux composants.
 
 #### Sections courantes selon le domaine — guide de sélection
 

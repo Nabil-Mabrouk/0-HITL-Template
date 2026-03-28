@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate, useSearchParams } from "react-router-dom";
+import { Routes, Route, Navigate, useSearchParams, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { useAuth } from "./context/AuthContext";
 
 // Pages publiques
@@ -82,58 +83,70 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 // ── App ────────────────────────────────────────────────────────────────────
 
 export default function App() {
+  // useLocation() est nécessaire pour que AnimatePresence détecte les changements de route
+  const location = useLocation();
+
   return (
-    <Routes>
+    // mode="wait" : attend la sortie de la page actuelle avant d'animer l'entrée
+    // de la suivante. Changer en mode="sync" pour des transitions simultanées.
+    <AnimatePresence mode="wait" initial={false}>
+      {/*
+        La key sur Routes force AnimatePresence à traiter chaque changement
+        de pathname comme un mount/unmount de composant.
+        Les pages qui utilisent <PageTransition> bénéficient automatiquement
+        de l'animation entrée/sortie. Les autres s'affichent normalement.
+      */}
+      <Routes location={location} key={location.pathname}>
 
-      {/* ── Public ─────────────────────────────────────────────────── */}
-      <Route path="/" element={<Landing />} />
+        {/* ── Public ─────────────────────────────────────────────────── */}
+        <Route path="/" element={<Landing />} />
 
-      <Route path="/login" element={
-        <GuestRoute><Login /></GuestRoute>
-      } />
-      <Route path="/register" element={
-        <GuestRoute><Register /></GuestRoute>
-      } />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password"  element={<ResetPassword />} />
-      <Route path="/verify-email"    element={<VerifyEmail />} />
+        <Route path="/login" element={
+          <GuestRoute><Login /></GuestRoute>
+        } />
+        <Route path="/register" element={
+          <GuestRoute><Register /></GuestRoute>
+        } />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
+        <Route path="/verify-email"    element={<VerifyEmail />} />
 
-      {/* ── Canaux d'auth ───────────────────────────────────────────── */}
-      <Route path="/signup" element={<AuthRouter />} />
-      <Route path="/register-direct" element={
-        <GuestRoute><RegisterDirect /></GuestRoute>
-      } />
-      <Route path="/join" element={
-        <GuestRoute allowUpdate={true}><Onboarding /></GuestRoute>
-      } />
+        {/* ── Canaux d'auth ───────────────────────────────────────────── */}
+        <Route path="/signup" element={<AuthRouter />} />
+        <Route path="/register-direct" element={
+          <GuestRoute><RegisterDirect /></GuestRoute>
+        } />
+        <Route path="/join" element={
+          <GuestRoute allowUpdate={true}><Onboarding /></GuestRoute>
+        } />
 
-      {/* ── Contenu / Université virtuelle ──────────────────────────── */}
-      <Route path="/learn"                   element={<Learn />} />
-      <Route path="/learn/:slug"             element={<TutorialPage />} />
-      <Route path="/learn/:slug/:lessonSlug" element={<LessonPage />} />
+        {/* ── Contenu / Université virtuelle ──────────────────────────── */}
+        <Route path="/learn"                   element={<Learn />} />
+        <Route path="/learn/:slug"             element={<TutorialPage />} />
+        <Route path="/learn/:slug/:lessonSlug" element={<LessonPage />} />
 
-      {/* ── Monétisation ────────────────────────────────────────────── */}
-      <Route path="/shop"         element={<Shop />} />
-      <Route path="/shop/success" element={<ShopSuccess />} />
-      <Route path="/premium"      element={<Premium />} />
+        {/* ── Monétisation ────────────────────────────────────────────── */}
+        <Route path="/shop"         element={<Shop />} />
+        <Route path="/shop/success" element={<ShopSuccess />} />
+        <Route path="/premium"      element={<Premium />} />
 
-      {/* ── Protégé ─────────────────────────────────────────────────── */}
-      <Route path="/profile" element={
-        <PrivateRoute><Profile /></PrivateRoute>
-      } />
+        {/* ── Protégé ─────────────────────────────────────────────────── */}
+        <Route path="/profile" element={
+          <PrivateRoute><Profile /></PrivateRoute>
+        } />
 
-      {/* ── Admin ───────────────────────────────────────────────────── */}
-      <Route path="/admin" element={
-        <AdminRoute><AdminDashboard /></AdminRoute>
-      } />
-      <Route path="/admin/content/:tutorialId" element={
-        <AdminRoute><ContentEditor /></AdminRoute>
-      } />
+        {/* ── Admin ───────────────────────────────────────────────────── */}
+        <Route path="/admin" element={
+          <AdminRoute><AdminDashboard /></AdminRoute>
+        } />
+        <Route path="/admin/content/:tutorialId" element={
+          <AdminRoute><ContentEditor /></AdminRoute>
+        } />
 
-      {/* ── Fallback ────────────────────────────────────────────────── */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+        {/* ── Fallback ────────────────────────────────────────────────── */}
+        <Route path="*" element={<Navigate to="/" replace />} />
 
-    </Routes>
+      </Routes>
+    </AnimatePresence>
   );
 }
-
