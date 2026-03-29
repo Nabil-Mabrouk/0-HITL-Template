@@ -108,8 +108,7 @@ docker-compose -f docker-compose.dev.yml run --rm migrate
 ### Créer une nouvelle migration après modification des modèles
 
 ```bash
-docker-compose -f docker-compose.dev.yml run --rm migrate \
-  alembic revision --autogenerate -m "description"
+docker-compose -f docker-compose.dev.yml run --rm migrate alembic revision --autogenerate -m "description"
 ```
 
 ### Arrêter les services
