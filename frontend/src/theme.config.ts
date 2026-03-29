@@ -37,6 +37,25 @@
 export type ThemePreset = 'minimal' | 'vibrant' | 'glass' | 'brutal' | 'editorial'
 
 /**
+ * DARK MODE STRATEGY — controls how dark/light mode is determined at runtime.
+ *
+ *  'auto'   User can toggle dark/light with the button in the Navbar.
+ *           Preference is saved in localStorage under the key "theme".
+ *           Initial value resolves in this order:
+ *             1. localStorage  (explicit user choice)
+ *             2. prefers-color-scheme  (OS/browser setting)
+ *             3. Preset's native mode  (DARK_PRESETS below)
+ *
+ *  'dark'   Always dark. Toggle button is hidden.
+ *
+ *  'light'  Always light. Toggle button is hidden.
+ *
+ * NOTE: When set to 'auto', the toggle button appears automatically in the
+ * Navbar. No other code changes are needed.
+ */
+export type DarkModeStrategy = 'auto' | 'dark' | 'light'
+
+/**
  * GEOMETRY — controls border-radius across the entire UI.
  *  'sharp'   0px  — Angular, technical, brutalist.
  *  'soft'    4px  — Minimal curvature, modern SaaS.
@@ -85,6 +104,14 @@ export type ButtonStyle = 'filled' | 'outlined' | 'gradient' | 'brutal'
 
 export interface ThemeConfig {
   preset:    ThemePreset
+  /**
+   * Dark mode strategy.
+   * - 'auto'   → system preference + user toggle (saved to localStorage)
+   * - 'dark'   → force dark, toggle hidden
+   * - 'light'  → force light, toggle hidden
+   * @default 'auto'
+   */
+  darkMode?: DarkModeStrategy
   colors: {
     /** Main brand color — buttons, links, accents. Use oklch() for vivid results. */
     primary:   string
@@ -119,6 +146,12 @@ const themeConfig: ThemeConfig = {
   // ── Choose a preset ────────────────────────────────────────────────────────
   // 'minimal' | 'vibrant' | 'glass' | 'brutal' | 'editorial'
   preset: 'minimal',
+
+  // ── Dark mode strategy ─────────────────────────────────────────────────────
+  // 'auto'  → user can toggle (OS preference + localStorage)
+  // 'dark'  → always dark, no toggle
+  // 'light' → always light, no toggle
+  darkMode: 'auto',
 
   // ── Brand colors ───────────────────────────────────────────────────────────
   // oklch(lightness chroma hue) — adjust hue to shift across the spectrum:
