@@ -196,12 +196,18 @@ def init():
             count = apply_replacements(values)
         console.print(f"[green]✅ {count} fichiers mis à jour.[/green]")
 
-    # 2. Environnement (.env)
+    # 2. Configuration Environnement (.env)
     console.print("\n[bold]⚙️ Étape 2 : Environnement (.env)[/bold]")
     if not ENV_FILE.exists():
         shutil.copy(ENV_EXAMPLE, ENV_FILE)
-    
-    env_updates = {"PROJECT_NAME": values["PROJECT_SLUG"], "VITE_API_URL": f"https://api.{domain}", "POSTGRES_DB": values["PROJECT_SLUG"]}
+
+    env_updates = {
+        "PROJECT_NAME": values["PROJECT_SLUG"],
+        "COMPOSE_PROJECT_NAME": values["PROJECT_SLUG"],  # Définit le nom du projet Docker
+        "VITE_API_URL": f"https://api.{domain}",
+        "POSTGRES_DB": values["PROJECT_SLUG"]
+    }
+
     
     # -- Database --
     console.print("\n[blue]🗄️ Base de données PostgreSQL[/blue]")
