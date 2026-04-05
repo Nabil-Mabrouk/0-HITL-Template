@@ -13,12 +13,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 # --- Configuration ---
 ROOT = Path(__file__).parent.parent.resolve()
 PROJECT_JSON = ROOT / "project.json"
 ENV_EXAMPLE = ROOT / ".env.example"
 ENV_FILE = ROOT / ".env"
+STYLE_PROMPT_TEMPLATE = ROOT / "frontend_prompt.md"
+STYLE_PROMPT_OUTPUT = ROOT / "STYLING_PROMPT.md"
 
 # Logic for replacements (reused from setup_project.py)
 TEMPLATE_LITERALS = {
@@ -44,7 +47,11 @@ IGNORE_DIRS = {
     '.nuxt', 'dist', 'build', '.idea', '.vscode', '__MACOSX', '.claude',
 }
 
-app = typer.Typer(help="CLI de gestion pour le template 0-HITL")
+app = typer.Typer(
+    help="CLI de gestion pour le template 0-HITL",
+    no_args_is_help=True,
+    add_completion=False
+)
 console = Console()
 
 def generate_secret(length: int = 32) -> str:
@@ -132,6 +139,29 @@ def update_env(env_path: Path, values: dict):
     with open(env_path, "w", encoding="utf-8") as f:
         f.writelines(new_lines)
 
+@app.command(name="help")
+def show_help():
+    """Affiche un beau tableau des commandes disponibles"""
+    console.print(Panel.fit(
+        "[bold cyan]🛠️  Commandes disponibles pour 0-HITL[/bold cyan]",
+        border_style="cyan"
+    ))
+    
+    table = Table(show_header=True, header_style="bold magenta", box=None)
+    table.add_column("Commande", style="bold yellow")
+    table.add_column("Description")
+    
+    table.add_row("init", "Initialisation complète (Placeholders, .env, Git, Docker)")
+    table.add_row("style", "Génère un prompt de design personnalisé pour Gemini/Claude")
+    table.add_row("dev", "Lance l'environnement de développement Docker (Vite + FastAPI)")
+    table.add_row("migrate", "Applique les migrations de base de données (Alembic)")
+    table.add_row("stop", "Arrête les conteneurs (conserve l'état)")
+    table.add_row("down", "Supprime les conteneurs (conserve les données)")
+    table.add_row("clean", "NETTOYAGE COMPLET (Supprime conteneurs ET volumes)")
+    table.add_row("help", "Affiche ce message d'aide")
+    
+    console.print(table)
+
 @app.command()
 def init():
     """Initialise le projet (Première utilisation)"""
@@ -141,7 +171,7 @@ def init():
         border_style="cyan"
     ))
 
-    # 0. Charger les valeurs par défaut
+    # 0. Charger les valeurs
     defaults = {"PROJECT_NAME": "my-app", "PROJECT_DISPLAY_NAME": "My Awesome App", "PROJECT_DOMAIN": "myapp.com", "DEFAULT_EMAIL": "contact@myapp.com"}
     if PROJECT_JSON.exists():
         try:
@@ -151,7 +181,7 @@ def init():
 
     # 1. Identification
     console.print("\n[bold]📦 Étape 1 : Identification[/bold]")
-    name = Prompt.ask("Nom technique du projet (slug)", default=defaults["PROJECT_NAME"])
+    name = Prompt.ask("Nom technique du projet", default=defaults["PROJECT_NAME"])
     display_name = Prompt.ask("Nom affiché", default=defaults["PROJECT_DISPLAY_NAME"])
     domain = Prompt.ask("Domaine", default=defaults["PROJECT_DOMAIN"])
     contact_email = Prompt.ask("Email de contact", default=defaults.get("DEFAULT_EMAIL", f"contact@{domain}"))
@@ -160,7 +190,7 @@ def init():
     with open(PROJECT_JSON, "w", encoding="utf-8") as f:
         json.dump(values, f, indent=4)
 
-    if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders dans les fichiers ?", default=True):
+    if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders ?", default=True):
         with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Remplacement des placeholders...", total=None)
             count = apply_replacements(values)
@@ -172,44 +202,15 @@ def init():
         shutil.copy(ENV_EXAMPLE, ENV_FILE)
     
     env_updates = {"PROJECT_NAME": values["PROJECT_SLUG"], "VITE_API_URL": f"https://api.{domain}", "POSTGRES_DB": values["PROJECT_SLUG"]}
-    
-    # -- Database --
-    console.print("\n[blue]🗄️ Base de données PostgreSQL[/blue]")
     env_updates["POSTGRES_USER"] = Prompt.ask("Utilisateur DB", default=values["PROJECT_SLUG"])
-    env_updates["POSTGRES_PASSWORD"] = Prompt.ask("Mot de passe DB (vide = généré)", default="", show_default=False)
-    if not env_updates["POSTGRES_PASSWORD"]:
-        env_updates["POSTGRES_PASSWORD"] = generate_secret(16)
-        console.print(f"[dim]Généré : {env_updates['POSTGRES_PASSWORD']}[/dim]")
-
-    # -- Secrets --
-    console.print("\n[blue]🔐 Sécurité & Secrets[/blue]")
-    env_updates["SECRET_KEY"] = Prompt.ask("SECRET_KEY JWT (vide = généré)", default="", show_default=False)
-    if not env_updates["SECRET_KEY"]:
-        env_updates["SECRET_KEY"] = generate_secret(32)
-        console.print(f"[dim]Généré : {env_updates['SECRET_KEY']}[/dim]")
+    env_updates["POSTGRES_PASSWORD"] = Prompt.ask("Mot de passe DB (vide = généré)", default="", show_default=False) or generate_secret(16)
+    env_updates["SECRET_KEY"] = Prompt.ask("SECRET_KEY JWT (vide = généré)", default="", show_default=False) or generate_secret(32)
     env_updates["JWT_SECRET"] = env_updates["SECRET_KEY"]
     
-    # -- Auth Channels --
-    console.print("\n[blue]🚪 Canaux d'authentification[/blue]")
     env_updates["AUTH_CHANNEL_WAITLIST"] = "true" if Confirm.ask("Activer la Waitlist ?", default=True) else "false"
     env_updates["AUTH_CHANNEL_DIRECT"] = "true" if Confirm.ask("Activer l'inscription directe ?", default=False) else "false"
     env_updates["AUTH_CHANNEL_ONBOARDING"] = "true" if Confirm.ask("Activer l'Onboarding ?", default=False) else "false"
     
-    # -- Email --
-    console.print("\n[blue]📧 Configuration Email[/blue]")
-    env_updates["SMTP_USER"] = Prompt.ask("SMTP User (Gmail/etc)", default=contact_email)
-    env_updates["EMAIL_FROM"] = env_updates["SMTP_USER"]
-    env_updates["EMAIL_FROM_NAME"] = display_name
-    if Confirm.ask("Voulez-vous configurer le mot de passe SMTP maintenant ?", default=False):
-        env_updates["SMTP_PASSWORD"] = Prompt.ask("SMTP App Password", password=True)
-
-    # -- Monetization --
-    console.print("\n[blue]💰 Monétisation[/blue]")
-    env_updates["MONETIZATION_SHOP"] = "true" if Confirm.ask("Activer la Boutique ?", default=False) else "false"
-    env_updates["MONETIZATION_SUBSCRIPTION"] = "true" if Confirm.ask("Activer les Abonnements ?", default=False) else "false"
-
-    # -- Initial Admin --
-    console.print("\n[blue]👤 Administrateur Initial[/blue]")
     env_updates["ADMIN_EMAIL"] = Prompt.ask("Email de l'admin", default=contact_email)
     env_updates["ADMIN_PASSWORD"] = Prompt.ask("Mot de passe admin", default="AdminSecure123!")
     env_updates["ADMIN_FULL_NAME"] = Prompt.ask("Nom complet admin", default="Admin")
@@ -264,6 +265,82 @@ def init():
     console.print("\n[bold green]✨ Initialisation terminée ! ✨[/bold green]")
 
 @app.command()
+def style():
+    """Génère un prompt de design personnalisé pour votre application"""
+    console.print(Panel.fit(
+        "[bold cyan]🎨 Générateur de Style 0-HITL[/bold cyan]\n"
+        "[dim]Répondez à ces questions pour créer un prompt de design sur mesure pour Gemini/Claude.[/dim]",
+        border_style="cyan"
+    ))
+
+    # Récupérer les infos existantes
+    project_name = "0-HITL"
+    if PROJECT_JSON.exists():
+        with open(PROJECT_JSON, "r") as f:
+            project_name = json.load(f).get("PROJECT_DISPLAY_NAME", "0-HITL")
+
+    # Questions créatives
+    console.print("\n[bold]🌟 Vision & Ambiance[/bold]")
+    business_domain = Prompt.ask("Quel est le domaine métier ? (ex: Santé mentale, Trading Crypto, Éducation...)")
+    target_audience = Prompt.ask("Quel est le public cible ? (ex: Jeunes gamers, Professionnels de santé, Entrepreneurs...)")
+    vibe = Prompt.ask("Quelle ambiance souhaitez-vous ? (ex: Minimaliste & Luxe, Vibrant & Énergique, Sobre & Médical...)")
+    
+    console.print("\n[bold]🎨 Identité Visuelle[/bold]")
+    primary_color = Prompt.ask("Couleur dominante (ex: Bleu Ardoise, Vert Sauge, Orange Néon...)", default="Choisir pour moi")
+    ui_preset = Prompt.ask("Style de base (minimal, vibrant, glass, brutal, editorial)", default="minimal")
+    
+    console.print("\n[bold]🏗️ Structure & Contenu[/bold]")
+    key_features = Prompt.ask("Quelles sont les 3 fonctionnalités clés à mettre en avant ?")
+    extra_sections = Prompt.ask("Sections additionnelles (témoignages, faq, démo, pricing...)", default="hero, features, cta")
+    language = Prompt.ask("Langue principale du site", default="Français")
+
+    # Construction du bloc de description
+    description_block = f"""Application : {project_name}
+Domaine : {business_domain}
+Public cible : {target_audience}
+Ambiance : {vibe}
+Palette : {primary_color} (Preset: {ui_preset})
+Sections souhaitées : {extra_sections}
+Fonctionnalités clés : {key_features}
+Langue : {language}"""
+
+    # Lecture du template
+    if not STYLE_PROMPT_TEMPLATE.exists():
+        console.print("[bold red]❌ Erreur : Fichier frontend_prompt.md introuvable.[/bold red]")
+        return
+
+    with open(STYLE_PROMPT_TEMPLATE, "r", encoding="utf-8") as f:
+        template_content = f.read()
+
+    # Remplacement du bloc de description
+    placeholder = "[REMPLACER CE BLOC PAR LA DESCRIPTION DE VOTRE APPLICATION]"
+    custom_prompt = template_content.replace(placeholder, description_block)
+
+    # Écriture du fichier de sortie
+    with open(STYLE_PROMPT_OUTPUT, "w", encoding="utf-8") as f:
+        f.write(custom_prompt)
+
+    console.print("\n" + "━" * 60)
+    console.print("[bold green]✅ Prompt de style généré avec succès ![/bold green]")
+    console.print(f"📂 Fichier : [bold]{STYLE_PROMPT_OUTPUT}[/bold]")
+
+    # Optionnel : Lancer Gemini CLI automatiquement
+    if Confirm.ask("\n[bold cyan]🚀 Voulez-vous envoyer ce prompt à Gemini CLI maintenant ?[/bold cyan]", default=True):
+        # Vérifier si gemini est installé
+        gemini_path = shutil.which("gemini")
+        if gemini_path:
+            console.print("[bold blue]→ Lancement de Gemini...[/bold blue]")
+            # On utilise subprocess.run sans check=True pour laisser l'utilisateur gérer l'interaction
+            subprocess.run(["gemini", "-p", custom_prompt], cwd=ROOT)
+        else:
+            console.print("[yellow]⚠️  La commande 'gemini' n'est pas installée sur votre système.[/yellow]")
+            console.print("[dim]Installez-la avec 'npm install -g @google/gemini-cli' ou copiez le contenu manuellement.[/dim]")
+
+    console.print("\n[bold cyan]Prochaine étape :[/bold cyan]")
+    console.print("Si Gemini a terminé, vérifiez les changements dans votre navigateur (http://localhost:5173).")
+    console.print("━" * 60)
+
+@app.command()
 def dev():
     """Lance l'environnement de développement (Docker)"""
     run_command("docker compose -f docker-compose.dev.yml up", "Docker Up")
@@ -276,7 +353,18 @@ def migrate():
 @app.command()
 def stop():
     """Arrête les conteneurs Docker"""
+    run_command("docker compose -f docker-compose.dev.yml stop", "Docker Stop")
+
+@app.command()
+def down():
+    """Supprime les conteneurs (conserve les données)"""
     run_command("docker compose -f docker-compose.dev.yml down", "Docker Down")
+
+@app.command()
+def clean():
+    """NETTOYAGE COMPLET : Supprime conteneurs ET volumes (efface la DB)"""
+    if Confirm.ask("[bold red]⚠️  Cela va effacer TOUTES les données. Continuer ?[/bold red]", default=False):
+        run_command("docker compose -f docker-compose.dev.yml down -v", "Docker Clean")
 
 if __name__ == "__main__":
     app()
