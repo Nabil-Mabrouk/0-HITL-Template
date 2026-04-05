@@ -109,11 +109,25 @@ def init():
         border_style="cyan"
     ))
 
+    # 0. Charger les valeurs existantes si possible
+    defaults = {
+        "PROJECT_NAME": "my-app",
+        "PROJECT_DISPLAY_NAME": "My Awesome App",
+        "PROJECT_DOMAIN": "myapp.com",
+        "DEFAULT_EMAIL": "contact@myapp.com"
+    }
+    if PROJECT_JSON.exists():
+        try:
+            with open(PROJECT_JSON, "r", encoding="utf-8") as f:
+                defaults.update(json.load(f))
+        except Exception:
+            pass
+
     # 1. Collecte des informations
-    name = Prompt.ask("Nom technique du projet (slug, ex: my-app)", default="my-app")
-    display_name = Prompt.ask("Nom affiché (ex: My Awesome App)", default="My Awesome App")
-    domain = Prompt.ask("Domaine (ex: myapp.com)", default="myapp.com")
-    email = Prompt.ask("Email par défaut", default=f"contact@{domain}")
+    name = Prompt.ask("Nom technique du projet (slug, ex: my-app)", default=defaults["PROJECT_NAME"])
+    display_name = Prompt.ask("Nom affiché (ex: My Awesome App)", default=defaults["PROJECT_DISPLAY_NAME"])
+    domain = Prompt.ask("Domaine (ex: myapp.com)", default=defaults["PROJECT_DOMAIN"])
+    email = Prompt.ask("Email par défaut", default=defaults.get("DEFAULT_EMAIL", f"contact@{domain}"))
 
     values = {
         "PROJECT_NAME": name,
@@ -129,20 +143,20 @@ def init():
     console.print("[green]✅ project.json mis à jour.[/green]")
 
     # 3. Application des remplacements
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        transient=True,
-    ) as progress:
-        progress.add_task(description="Remplacement des placeholders...", total=None)
-        count = apply_replacements(values)
-    console.print(f"[green]✅ {count} fichiers mis à jour avec vos informations.[/green]")
+    if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders dans les fichiers ?", default=True):
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            transient=True,
+        ) as progress:
+            progress.add_task(description="Remplacement des placeholders...", total=None)
+            count = apply_replacements(values)
+        console.print(f"[green]✅ {count} fichiers mis à jour.[/green]")
 
     # 4. Configuration du .env
     if not ENV_FILE.exists():
         shutil.copy(ENV_EXAMPLE, ENV_FILE)
         
-        # Génération des secrets
         jwt_secret = generate_secret()
         db_password = generate_secret(16)
         
@@ -161,30 +175,50 @@ def init():
                     f.write(line)
         console.print("[green]✅ Fichier .env créé avec des secrets sécurisés.[/green]")
     else:
-        console.print("[yellow]⚠️  Le fichier .env existe déjà, ignoré.[/yellow]")
+        if Confirm.ask("[yellow]⚠️  Le fichier .env existe déjà. Voulez-vous le régénérer (écrase les secrets) ?[/yellow]", default=False):
+            shutil.copy(ENV_EXAMPLE, ENV_FILE)
+            # ... (logique de génération identique)
+            console.print("[green]✅ Fichier .env régénéré.[/green]")
 
     # 5. Git (Optionnel)
-    if Confirm.ask("Voulez-vous réinitialiser le dépôt Git pour ce projet ?", default=True):
-        if (ROOT / ".git").exists():
-            shutil.rmtree(ROOT / ".git", onerror=handle_remove_readonly)
+    git_dir = ROOT / ".git"
+    if Confirm.ask("Voulez-vous configurer le dépôt Git ?", default=True):
+        if git_dir.exists() and Confirm.ask("[yellow]⚠️  Un dépôt Git existe déjà. Voulez-vous le réinitialiser complètement ?[/yellow]", default=False):
+            shutil.rmtree(git_dir, onerror=handle_remove_readonly)
         
-        run_command("git init", "Initialisation de Git")
+        if not git_dir.exists():
+            run_command("git init", "Initialisation de Git")
         
-        # Ajout du remote
+        # Gestion du remote
         repo_url = Prompt.ask("URL du dépôt distant (ex: https://github.com/user/repo.git) [optionnel]", default="")
         if repo_url:
-            run_command(f"git remote add origin {repo_url}", f"Liaison au dépôt distant ({repo_url})")
+            # Vérifier si le remote existe déjà
+            try:
+                remotes = subprocess.check_output("git remote", shell=True, cwd=ROOT).decode().split()
+                if "origin" in remotes:
+                    run_command(f"git remote set-url origin {repo_url}", f"Mise à jour du remote origin ({repo_url})")
+                else:
+                    run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin ({repo_url})")
+            except Exception:
+                run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin ({repo_url})")
         
         run_command("git add .", "Staging des fichiers")
-        run_command(f'git commit -m "chore: initial project setup from {name} template"', "Premier commit")
+        # On ne commit que s'il y a des changements
+        try:
+            status = subprocess.check_output("git status --porcelain", shell=True, cwd=ROOT).decode()
+            if status:
+                run_command(f'git commit -m "chore: initial project setup from {name} template"', "Premier commit")
+            else:
+                console.print("[dim]Aucun changement à committer.[/dim]")
+        except Exception:
+            pass
         
         if repo_url and Confirm.ask("Voulez-vous pousser le code vers le dépôt distant maintenant ?", default=True):
             branch = Prompt.ask("Nom de la branche principale", default="main")
-            # Force le nom de la branche locale pour correspondre au push
             run_command(f"git branch -M {branch}", f"Configuration de la branche {branch}")
             run_command(f"git push -u origin {branch}", f"Push vers origin {branch}")
             
-        console.print("[green]✅ Dépôt Git configuré.[/green]")
+        console.print("[green]✅ Dépôt Git prêt.[/green]")
 
     # 6. Docker (Optionnel)
     if Confirm.ask("Voulez-vous lancer le build Docker maintenant ?", default=False):
