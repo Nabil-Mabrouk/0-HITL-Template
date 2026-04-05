@@ -141,7 +141,7 @@ def init():
         border_style="cyan"
     ))
 
-    # 0. Charger les valeurs
+    # 0. Charger les valeurs par défaut
     defaults = {"PROJECT_NAME": "my-app", "PROJECT_DISPLAY_NAME": "My Awesome App", "PROJECT_DOMAIN": "myapp.com", "DEFAULT_EMAIL": "contact@myapp.com"}
     if PROJECT_JSON.exists():
         try:
@@ -151,7 +151,7 @@ def init():
 
     # 1. Identification
     console.print("\n[bold]📦 Étape 1 : Identification[/bold]")
-    name = Prompt.ask("Nom technique du projet", default=defaults["PROJECT_NAME"])
+    name = Prompt.ask("Nom technique du projet (slug)", default=defaults["PROJECT_NAME"])
     display_name = Prompt.ask("Nom affiché", default=defaults["PROJECT_DISPLAY_NAME"])
     domain = Prompt.ask("Domaine", default=defaults["PROJECT_DOMAIN"])
     contact_email = Prompt.ask("Email de contact", default=defaults.get("DEFAULT_EMAIL", f"contact@{domain}"))
@@ -160,7 +160,7 @@ def init():
     with open(PROJECT_JSON, "w", encoding="utf-8") as f:
         json.dump(values, f, indent=4)
 
-    if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders ?", default=True):
+    if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders dans les fichiers ?", default=True):
         with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Remplacement des placeholders...", total=None)
             count = apply_replacements(values)
@@ -172,15 +172,44 @@ def init():
         shutil.copy(ENV_EXAMPLE, ENV_FILE)
     
     env_updates = {"PROJECT_NAME": values["PROJECT_SLUG"], "VITE_API_URL": f"https://api.{domain}", "POSTGRES_DB": values["PROJECT_SLUG"]}
+    
+    # -- Database --
+    console.print("\n[blue]🗄️ Base de données PostgreSQL[/blue]")
     env_updates["POSTGRES_USER"] = Prompt.ask("Utilisateur DB", default=values["PROJECT_SLUG"])
-    env_updates["POSTGRES_PASSWORD"] = Prompt.ask("Mot de passe DB (vide = généré)", default="", show_default=False) or generate_secret(16)
-    env_updates["SECRET_KEY"] = Prompt.ask("SECRET_KEY JWT (vide = généré)", default="", show_default=False) or generate_secret(32)
+    env_updates["POSTGRES_PASSWORD"] = Prompt.ask("Mot de passe DB (vide = généré)", default="", show_default=False)
+    if not env_updates["POSTGRES_PASSWORD"]:
+        env_updates["POSTGRES_PASSWORD"] = generate_secret(16)
+        console.print(f"[dim]Généré : {env_updates['POSTGRES_PASSWORD']}[/dim]")
+
+    # -- Secrets --
+    console.print("\n[blue]🔐 Sécurité & Secrets[/blue]")
+    env_updates["SECRET_KEY"] = Prompt.ask("SECRET_KEY JWT (vide = généré)", default="", show_default=False)
+    if not env_updates["SECRET_KEY"]:
+        env_updates["SECRET_KEY"] = generate_secret(32)
+        console.print(f"[dim]Généré : {env_updates['SECRET_KEY']}[/dim]")
     env_updates["JWT_SECRET"] = env_updates["SECRET_KEY"]
     
+    # -- Auth Channels --
+    console.print("\n[blue]🚪 Canaux d'authentification[/blue]")
     env_updates["AUTH_CHANNEL_WAITLIST"] = "true" if Confirm.ask("Activer la Waitlist ?", default=True) else "false"
     env_updates["AUTH_CHANNEL_DIRECT"] = "true" if Confirm.ask("Activer l'inscription directe ?", default=False) else "false"
     env_updates["AUTH_CHANNEL_ONBOARDING"] = "true" if Confirm.ask("Activer l'Onboarding ?", default=False) else "false"
     
+    # -- Email --
+    console.print("\n[blue]📧 Configuration Email[/blue]")
+    env_updates["SMTP_USER"] = Prompt.ask("SMTP User (Gmail/etc)", default=contact_email)
+    env_updates["EMAIL_FROM"] = env_updates["SMTP_USER"]
+    env_updates["EMAIL_FROM_NAME"] = display_name
+    if Confirm.ask("Voulez-vous configurer le mot de passe SMTP maintenant ?", default=False):
+        env_updates["SMTP_PASSWORD"] = Prompt.ask("SMTP App Password", password=True)
+
+    # -- Monetization --
+    console.print("\n[blue]💰 Monétisation[/blue]")
+    env_updates["MONETIZATION_SHOP"] = "true" if Confirm.ask("Activer la Boutique ?", default=False) else "false"
+    env_updates["MONETIZATION_SUBSCRIPTION"] = "true" if Confirm.ask("Activer les Abonnements ?", default=False) else "false"
+
+    # -- Initial Admin --
+    console.print("\n[blue]👤 Administrateur Initial[/blue]")
     env_updates["ADMIN_EMAIL"] = Prompt.ask("Email de l'admin", default=contact_email)
     env_updates["ADMIN_PASSWORD"] = Prompt.ask("Mot de passe admin", default="AdminSecure123!")
     env_updates["ADMIN_FULL_NAME"] = Prompt.ask("Nom complet admin", default="Admin")
@@ -222,11 +251,9 @@ def init():
             success = run_command(f"git push -u origin {branch}", "Push vers origin", exit_on_error=False)
             
             if not success:
-                console.print("[yellow]⚠️  Le push a échoué. Cela arrive souvent si le dépôt distant n'est pas vide (README, License, etc).[/yellow]")
-                if Confirm.ask("Voulez-vous tenter un FORCE PUSH (écrase le distant) ?", default=False):
+                console.print("[yellow]⚠️  Le push a échoué (dépôt non vide ?).[/yellow]")
+                if Confirm.ask("Voulez-vous tenter un FORCE PUSH ?", default=False):
                     run_command(f"git push -f origin {branch}", "Force push")
-                else:
-                    console.print("[blue]ℹ️  Vous devrez régler le conflit manuellement (git pull --rebase origin main).[/blue]")
 
     # 4. Docker
     console.print("\n[bold]🐳 Étape 4 : Docker[/bold]")
