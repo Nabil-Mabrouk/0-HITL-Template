@@ -3,6 +3,7 @@ import os
 import json
 import secrets
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 from typing import Optional
@@ -94,6 +95,11 @@ def apply_replacements(values: dict):
                 continue
     return count
 
+def handle_remove_readonly(func, path, excinfo):
+    """Handler pour shutil.rmtree qui gère les fichiers en lecture seule (Windows)."""
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
+
 @app.command()
 def init():
     """Initialise le projet (Première utilisation)"""
@@ -160,10 +166,10 @@ def init():
     # 5. Git (Optionnel)
     if Confirm.ask("Voulez-vous réinitialiser le dépôt Git pour ce projet ?", default=True):
         if (ROOT / ".git").exists():
-            shutil.rmtree(ROOT / ".git")
+            shutil.rmtree(ROOT / ".git", onerror=handle_remove_readonly)
         run_command("git init", "Initialisation de Git")
         run_command("git add .", "Staging des fichiers")
-        run_command('git commit -m "chore: initial project setup from 0-HITL template"', "Premier commit")
+        run_command(f'git commit -m "chore: initial project setup from {name} template"', "Premier commit")
         console.print("[green]✅ Dépôt Git prêt.[/green]")
 
     # 6. Docker (Optionnel)
