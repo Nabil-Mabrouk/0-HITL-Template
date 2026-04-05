@@ -224,38 +224,53 @@ def init():
 
 @app.command()
 def style():
-    """Génère un prompt de design pur pour Gemini/Claude"""
-    console.print(Panel.fit("[bold cyan]🎨 Prompt de Style[/bold cyan]", border_style="cyan"))
+    """Génère un prompt de design pur pour Gemini/Claude (Spatial Web Edition)"""
+    console.print(Panel.fit("[bold cyan]🎨 Prompt de Style (Spatial Web Edition)[/bold cyan]", border_style="cyan"))
+    
     project_name = "0-HITL"
     if PROJECT_JSON.exists():
-        with open(PROJECT_JSON, "r") as f: project_name = json.load(f).get("PROJECT_DISPLAY_NAME", "0-HITL")
+        try:
+            with open(PROJECT_JSON, "r") as f:
+                project_name = json.load(f).get("PROJECT_DISPLAY_NAME", "0-HITL")
+        except Exception: pass
 
-    domain = Prompt.ask("Domaine métier")
-    audience = Prompt.ask("Public cible")
-    vibe = Prompt.ask("Ambiance (ex: Minimal & Luxe)")
-    color = Prompt.ask("Couleur dominante", default="Choisir pour moi")
-    preset = Prompt.ask("Preset (minimal, vibrant, glass, brutal, editorial)", default="minimal")
-    features = Prompt.ask("3 Features clés")
-    lang = Prompt.ask("Langue", default="Français")
+    domain = Prompt.ask("Domaine métier", default="Automatisation agente et IA")
+    audience = Prompt.ask("Public cible", default="Développeurs et fondateurs de start-ups")
+    vibe = Prompt.ask("Ambiance", default="Spatial Web — Profondeur, lumière dynamique, matériaux en verre")
+    art_direction = Prompt.ask("Direction Artistique", default="Carte Blanche totale. Utilise le preset glass, force le mode sombre OLED, et privilégie les contrastes élevés.")
 
-    desc = f"Application: {project_name}\nDomaine: {domain}\nPublic: {audience}\nAmbiance: {vibe}\nPalette: {color} (Preset: {preset})\nFeatures: {features}\nLangue: {lang}"
+    if not STYLE_PROMPT_TEMPLATE.exists():
+        console.print("[bold red]❌ Erreur : Fichier frontend_prompt.md introuvable.[/bold red]")
+        return
 
-    if not STYLE_PROMPT_TEMPLATE.exists(): return
-    with open(STYLE_PROMPT_TEMPLATE, "r", encoding="utf-8") as f: content = f.read()
+    import re
+    with open(STYLE_PROMPT_TEMPLATE, "r", encoding="utf-8") as f:
+        content = f.read()
 
-    # Extraction du prompt pur (après le marqueur)
-    marker = "*(Tout ce qui suit est destiné à l'agent — copier-coller tel quel)*"
-    if marker in content:
-        pure_prompt = content.split(marker)[1].strip()
+    # Construction du nouveau bloc de description
+    new_desc_block = f"""  Description de l'application
+   - Application : {project_name}
+   - Domaine : {domain}
+   - Public : {audience}
+   - Ambiance : {vibe}
+   - Direction Artistique : {art_direction}"""
+
+    # Remplacement intelligent du bloc de description (délimité par "Description de l'application" et le prochain "---")
+    pattern = r"Description de l'application.*?(?=\n\s*---)"
+    if re.search(pattern, content, re.DOTALL):
+        final_prompt = re.sub(pattern, new_desc_block, content, flags=re.DOTALL)
     else:
-        pure_prompt = content
+        # Fallback si la structure est différente
+        final_prompt = content.replace("GitSky", project_name)
 
-    final_prompt = pure_prompt.replace("[REMPLACER CE BLOC PAR LA DESCRIPTION DE VOTRE APPLICATION]", desc)
-    with open(STYLE_PROMPT_OUTPUT, "w", encoding="utf-8") as f: f.write(final_prompt)
+    with open(STYLE_PROMPT_OUTPUT, "w", encoding="utf-8") as f:
+        f.write(final_prompt.strip())
 
     console.print(f"[green]✅ Prompt généré : {STYLE_PROMPT_OUTPUT}[/green]")
     if Confirm.ask("🚀 Envoyer à Gemini ?", default=True):
-        subprocess.run(f'gemini -p "{final_prompt.replace('"', "'")}"', shell=True, cwd=ROOT)
+        # On échappe les guillemets pour la commande shell
+        escaped_prompt = final_prompt.replace('"', "'")
+        subprocess.run(f'gemini -p "{escaped_prompt}"', shell=True, cwd=ROOT)
 
 @app.command()
 def tutorial():
