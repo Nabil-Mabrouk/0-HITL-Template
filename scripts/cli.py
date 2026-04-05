@@ -294,9 +294,10 @@ def init():
     # 4. Docker
     console.print("\n[bold]🐳 Étape 4 : Docker[/bold]")
     if Confirm.ask("Voulez-vous lancer le build Docker maintenant ?", default=False):
-        run_command("docker compose -f docker-compose.dev.yml build -d", "Docker Build")
+        run_command("docker compose -f docker-compose.dev.yml down -v", "Docker clean")
+        run_command("docker compose -f docker-compose.dev.yml build", "Docker Build")
         run_command("docker-compose -f docker-compose.dev.yml run --rm migrate alembic revision --autogenerate ", "Docker Migrate")
-        run_command("docker compose -f docker-compose.dev.yml up -d", "Docker Up")
+        run_command("docker compose -f docker-compose.dev.yml up", "Docker Up")
         console.print("[green]✅ Docker lancé ! http://localhost:5173[/green]")
 
     console.print("\n[bold green]✨ Initialisation terminée ! ✨[/bold green]")
