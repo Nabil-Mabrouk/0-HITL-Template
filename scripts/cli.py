@@ -100,12 +100,40 @@ def handle_remove_readonly(func, path, excinfo):
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
+def update_env(env_path: Path, values: dict):
+    """Met à jour ou ajoute des variables dans le fichier .env."""
+    if not env_path.exists():
+        return
+        
+    with open(env_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    
+    new_lines = []
+    keys_handled = set()
+    
+    for line in lines:
+        if "=" in line and not line.strip().startswith("#"):
+            key = line.split("=", 1)[0].strip()
+            if key in values:
+                new_lines.append(f"{key}={values[key]}\n")
+                keys_handled.add(key)
+                continue
+        new_lines.append(line)
+    
+    # Ajouter les clés qui n'existaient pas encore
+    for key, value in values.items():
+        if key not in keys_handled:
+            new_lines.append(f"{key}={value}\n")
+            
+    with open(env_path, "w", encoding="utf-8") as f:
+        f.writelines(new_lines)
+
 @app.command()
 def init():
     """Initialise le projet (Première utilisation)"""
     console.print(Panel.fit(
-        "[bold cyan]🚀 Initialisation du projet 0-HITL[/bold cyan]\n"
-        "[dim]Ce script va configurer votre nouveau projet en quelques étapes.[/dim]",
+        "[bold cyan]🚀 Configuration du projet 0-HITL[/bold cyan]\n"
+        "[dim]Ce script va configurer votre environnement complet en quelques étapes.[/dim]",
         border_style="cyan"
     ))
 
@@ -123,64 +151,96 @@ def init():
         except Exception:
             pass
 
-    # 1. Collecte des informations
+    # 1. Identification du projet
+    console.print("\n[bold]📦 Étape 1 : Identification[/bold]")
     name = Prompt.ask("Nom technique du projet (slug, ex: my-app)", default=defaults["PROJECT_NAME"])
     display_name = Prompt.ask("Nom affiché (ex: My Awesome App)", default=defaults["PROJECT_DISPLAY_NAME"])
     domain = Prompt.ask("Domaine (ex: myapp.com)", default=defaults["PROJECT_DOMAIN"])
-    email = Prompt.ask("Email par défaut", default=defaults.get("DEFAULT_EMAIL", f"contact@{domain}"))
+    contact_email = Prompt.ask("Email de contact par défaut", default=defaults.get("DEFAULT_EMAIL", f"contact@{domain}"))
 
     values = {
         "PROJECT_NAME": name,
         "PROJECT_DISPLAY_NAME": display_name,
-        "PROJECT_SLUG": name.replace("-", ""),
+        "PROJECT_SLUG": name.replace("-", "").lower(),
         "PROJECT_DOMAIN": domain,
-        "DEFAULT_EMAIL": email
+        "DEFAULT_EMAIL": contact_email
     }
 
-    # 2. Sauvegarde project.json
+    # Sauvegarde project.json
     with open(PROJECT_JSON, "w", encoding="utf-8") as f:
         json.dump(values, f, indent=4)
     console.print("[green]✅ project.json mis à jour.[/green]")
 
-    # 3. Application des remplacements
+    # Application des remplacements
     if Confirm.ask("Voulez-vous appliquer les remplacements de placeholders dans les fichiers ?", default=True):
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
-        ) as progress:
+        with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}"), transient=True) as progress:
             progress.add_task(description="Remplacement des placeholders...", total=None)
             count = apply_replacements(values)
         console.print(f"[green]✅ {count} fichiers mis à jour.[/green]")
 
-    # 4. Configuration du .env
+    # 2. Configuration Environnement (.env)
+    console.print("\n[bold]⚙️ Étape 2 : Environnement (.env)[/bold]")
     if not ENV_FILE.exists():
         shutil.copy(ENV_EXAMPLE, ENV_FILE)
-        
-        jwt_secret = generate_secret()
-        db_password = generate_secret(16)
-        
-        with open(ENV_FILE, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-        
-        with open(ENV_FILE, "w", encoding="utf-8") as f:
-            for line in lines:
-                if line.startswith("SECRET_KEY="):
-                    f.write(f"SECRET_KEY={jwt_secret}\n")
-                elif line.startswith("POSTGRES_PASSWORD="):
-                    f.write(f"POSTGRES_PASSWORD={db_password}\n")
-                elif line.startswith("JWT_SECRET="):
-                    f.write(f"JWT_SECRET={jwt_secret}\n")
-                else:
-                    f.write(line)
-        console.print("[green]✅ Fichier .env créé avec des secrets sécurisés.[/green]")
-    else:
-        if Confirm.ask("[yellow]⚠️  Le fichier .env existe déjà. Voulez-vous le régénérer (écrase les secrets) ?[/yellow]", default=False):
-            shutil.copy(ENV_EXAMPLE, ENV_FILE)
-            # ... (logique de génération identique)
-            console.print("[green]✅ Fichier .env régénéré.[/green]")
+        console.print("[green]✅ Fichier .env créé à partir de l'exemple.[/green]")
+    
+    env_updates = {
+        "PROJECT_NAME": values["PROJECT_SLUG"],
+        "VITE_API_URL": f"https://api.{domain}",
+        "POSTGRES_DB": values["PROJECT_SLUG"]
+    }
 
-    # 5. Git (Optionnel)
+    # -- Database --
+    console.print("\n[blue]🗄️ Base de données PostgreSQL[/blue]")
+    env_updates["POSTGRES_USER"] = Prompt.ask("Utilisateur DB", default=values["PROJECT_SLUG"])
+    env_updates["POSTGRES_PASSWORD"] = Prompt.ask("Mot de passe DB (laisser vide pour générer)", default="", show_default=False)
+    if not env_updates["POSTGRES_PASSWORD"]:
+        env_updates["POSTGRES_PASSWORD"] = generate_secret(16)
+        console.print(f"[dim]Généré : {env_updates['POSTGRES_PASSWORD']}[/dim]")
+
+    # -- Secrets --
+    console.print("\n[blue]🔐 Sécurité & Secrets[/blue]")
+    env_updates["SECRET_KEY"] = Prompt.ask("SECRET_KEY JWT (laisser vide pour générer)", default="", show_default=False)
+    if not env_updates["SECRET_KEY"]:
+        env_updates["SECRET_KEY"] = generate_secret(32)
+        console.print(f"[dim]Généré : {env_updates['SECRET_KEY']}[/dim]")
+    env_updates["JWT_SECRET"] = env_updates["SECRET_KEY"]
+
+    # -- Auth Channels --
+    console.print("\n[blue]🚪 Canaux d'authentification[/blue]")
+    env_updates["AUTH_CHANNEL_WAITLIST"] = "true" if Confirm.ask("Activer la Waitlist ?", default=True) else "false"
+    env_updates["AUTH_CHANNEL_DIRECT"] = "true" if Confirm.ask("Activer l'inscription directe ?", default=False) else "false"
+    env_updates["AUTH_CHANNEL_ONBOARDING"] = "true" if Confirm.ask("Activer l'Onboarding (questionnaire) ?", default=False) else "false"
+    
+    if env_updates["AUTH_CHANNEL_ONBOARDING"] == "true":
+        env_updates["AUTH_ONBOARDING_FLOW"] = Prompt.ask("Nom du flow d'onboarding (JSON)", default=values["PROJECT_SLUG"])
+        env_updates["AUTH_ONBOARDING_TARGET_ROLE"] = Prompt.ask("Rôle cible après onboarding", default="premium")
+
+    # -- Email --
+    console.print("\n[blue]📧 Configuration Email (facultatif en dev)[/blue]")
+    env_updates["SMTP_USER"] = Prompt.ask("SMTP User (Gmail/etc)", default=contact_email)
+    env_updates["EMAIL_FROM"] = env_updates["SMTP_USER"]
+    env_updates["EMAIL_FROM_NAME"] = display_name
+    if Confirm.ask("Voulez-vous configurer le mot de passe SMTP maintenant ?", default=False):
+        env_updates["SMTP_PASSWORD"] = Prompt.ask("SMTP App Password", password=True)
+
+    # -- Monetization --
+    console.print("\n[blue]💰 Monétisation & Stripe[/blue]")
+    env_updates["MONETIZATION_SHOP"] = "true" if Confirm.ask("Activer la Boutique ?", default=False) else "false"
+    env_updates["MONETIZATION_SUBSCRIPTION"] = "true" if Confirm.ask("Activer les Abonnements ?", default=False) else "false"
+
+    # -- Initial Admin --
+    console.print("\n[blue]👤 Administrateur Initial[/blue]")
+    env_updates["ADMIN_EMAIL"] = Prompt.ask("Email de l'admin", default=contact_email)
+    env_updates["ADMIN_PASSWORD"] = Prompt.ask("Mot de passe admin", default="AdminSecure123!")
+    env_updates["ADMIN_FULL_NAME"] = Prompt.ask("Nom complet admin", default="Admin")
+
+    # Appliquer les mises à jour au .env
+    update_env(ENV_FILE, env_updates)
+    console.print("[green]✅ Fichier .env mis à jour avec toutes vos préférences.[/green]")
+
+    # 3. Git (Optionnel)
+    console.print("\n[bold]🌿 Étape 3 : Git[/bold]")
     git_dir = ROOT / ".git"
     if Confirm.ask("Voulez-vous configurer le dépôt Git ?", default=True):
         if git_dir.exists() and Confirm.ask("[yellow]⚠️  Un dépôt Git existe déjà. Voulez-vous le réinitialiser complètement ?[/yellow]", default=False):
@@ -189,21 +249,18 @@ def init():
         if not git_dir.exists():
             run_command("git init", "Initialisation de Git")
         
-        # Gestion du remote
         repo_url = Prompt.ask("URL du dépôt distant (ex: https://github.com/user/repo.git) [optionnel]", default="")
         if repo_url:
-            # Vérifier si le remote existe déjà
             try:
                 remotes = subprocess.check_output("git remote", shell=True, cwd=ROOT).decode().split()
                 if "origin" in remotes:
-                    run_command(f"git remote set-url origin {repo_url}", f"Mise à jour du remote origin ({repo_url})")
+                    run_command(f"git remote set-url origin {repo_url}", f"Mise à jour du remote origin")
                 else:
-                    run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin ({repo_url})")
+                    run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin")
             except Exception:
-                run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin ({repo_url})")
+                run_command(f"git remote add origin {repo_url}", f"Ajout du remote origin")
         
         run_command("git add .", "Staging des fichiers")
-        # On ne commit que s'il y a des changements
         try:
             status = subprocess.check_output("git status --porcelain", shell=True, cwd=ROOT).decode()
             if status:
@@ -218,9 +275,10 @@ def init():
             run_command(f"git branch -M {branch}", f"Configuration de la branche {branch}")
             run_command(f"git push -u origin {branch}", f"Push vers origin {branch}")
             
-        console.print("[green]✅ Dépôt Git prêt.[/green]")
+        console.print("[green]✅ Dépôt Git configuré.[/green]")
 
-    # 6. Docker (Optionnel)
+    # 4. Docker (Optionnel)
+    console.print("\n[bold]🐳 Étape 4 : Docker[/bold]")
     if Confirm.ask("Voulez-vous lancer le build Docker maintenant ?", default=False):
         run_command("docker compose -f docker-compose.dev.yml up --build -d", "Build et démarrage Docker")
         console.print("[green]✅ Environnement Docker lancé ![/green]")
