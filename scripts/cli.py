@@ -180,6 +180,8 @@ def init():
         
         if repo_url and Confirm.ask("Voulez-vous pousser le code vers le dépôt distant maintenant ?", default=True):
             branch = Prompt.ask("Nom de la branche principale", default="main")
+            # Force le nom de la branche locale pour correspondre au push
+            run_command(f"git branch -M {branch}", f"Configuration de la branche {branch}")
             run_command(f"git push -u origin {branch}", f"Push vers origin {branch}")
             
         console.print("[green]✅ Dépôt Git configuré.[/green]")
