@@ -18,3 +18,5 @@ aiofiles==24.1.0
 python-multipart==0.0.12
 apscheduler==3.10.4
 stripe==10.12.0
+typer[all]==0.12.3
+rich==13.7.1

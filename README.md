@@ -22,76 +22,60 @@ Template fullstack complet pour lancer une plateforme web avec gestion des utili
 
 ---
 
-## Démarrage rapide
+## Démarrage rapide (Nouveau !)
 
-### Étape 1 — Cloner et personnaliser
+Le template inclut désormais un CLI interactif pour configurer votre projet en moins de 2 minutes.
+
+### Étape 1 — Cloner le projet
 
 ```bash
 git clone https://github.com/your-org/0-hitl-template my-project
 cd my-project
 ```
 
-Remplir `project.json` avec les valeurs de votre projet :
+### Étape 2 — Initialisation interactive
 
-```json
-{
-  "PROJECT_NAME":         "my-app",
-  "PROJECT_DISPLAY_NAME": "My App",
-  "PROJECT_SLUG":         "myapp",
-  "PROJECT_DOMAIN":       "myapp.com",
-  "DEFAULT_EMAIL":        "contact@myapp.com",
-  "PROJECT_TAGLINE":      "Your tagline here",
-  "PROJECT_DESCRIPTION":  "What your platform does",
-  "PROJECT_AUTHOR":       "Your Name"
-}
-```
-
-Appliquer les remplacements dans tous les fichiers sources :
+Le CLI va vous poser quelques questions, générer vos clés secrètes, configurer votre `.env` et préparer votre dépôt Git.
 
 ```bash
-python scripts/setup_project.py --dry-run   # Prévisualiser
-python scripts/setup_project.py             # Appliquer
+# Installer les dépendances du CLI (si pas déjà fait)
+pip install typer rich
+
+# Lancer l'onboarding
+python scripts/cli.py init
 ```
 
-### Étape 2 — Configurer l'environnement
+### Étape 3 — Lancer le développement
+
+Une fois l'initialisation terminée, vous pouvez lancer l'environnement complet :
 
 ```bash
-cp .env.example .env
+python scripts/cli.py dev
 ```
 
-Remplir `.env` avec les valeurs minimales requises :
-
-```env
-# Base de données
-POSTGRES_USER=myapp
-POSTGRES_PASSWORD=change_me_strong_password
-POSTGRES_DB=myapp
-
-# JWT (générer avec : openssl rand -hex 32)
-SECRET_KEY=your_64_char_random_secret_here
-
-# Admin initial
-ADMIN_EMAIL=admin@myapp.com
-ADMIN_PASSWORD=Admin@SecurePass123
-
-# Email (pour la vérification d'email et le reset MDP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your@gmail.com
-SMTP_PASSWORD=your_app_password   # Mot de passe d'application Gmail
-EMAIL_FROM=your@gmail.com
-EMAIL_FROM_NAME=My App
-```
+Cela démarre :
+- **Frontend** → http://localhost:5173 (hot-reload Vite)
+- **Backend**  → http://localhost:8000 (hot-reload Uvicorn)
+- **Docs API** → http://localhost:8000/docs
 
 ---
 
-## Développement local
+## Commandes du CLI
 
-### Lancer les services
+Le script `scripts/cli.py` est votre centre de contrôle pour le développement quotidien :
 
-```bash
-docker-compose -f docker-compose.dev.yml up --build
-```
+| Commande | Description |
+|---|---|
+| `python scripts/cli.py init` | **Initialisation complète** (Placeholders, .env, Secrets, Git, Docker) |
+| `python scripts/cli.py dev` | **Lancer** l'environnement Docker (Frontend + Backend + DB) |
+| `python scripts/cli.py migrate` | **Appliquer les migrations** SQL (Alembic) |
+| `python scripts/cli.py stop` | **Arrêter** tous les services Docker |
+
+---
+
+## Développement local (Manuel)
+
+Si vous préférez ne pas utiliser le CLI, voici les commandes standards :
 
 Cela démarre :
 - **Frontend** → http://localhost:5173 (hot-reload Vite)
