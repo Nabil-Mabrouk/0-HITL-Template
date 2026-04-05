@@ -167,10 +167,22 @@ def init():
     if Confirm.ask("Voulez-vous réinitialiser le dépôt Git pour ce projet ?", default=True):
         if (ROOT / ".git").exists():
             shutil.rmtree(ROOT / ".git", onerror=handle_remove_readonly)
+        
         run_command("git init", "Initialisation de Git")
+        
+        # Ajout du remote
+        repo_url = Prompt.ask("URL du dépôt distant (ex: https://github.com/user/repo.git) [optionnel]", default="")
+        if repo_url:
+            run_command(f"git remote add origin {repo_url}", f"Liaison au dépôt distant ({repo_url})")
+        
         run_command("git add .", "Staging des fichiers")
         run_command(f'git commit -m "chore: initial project setup from {name} template"', "Premier commit")
-        console.print("[green]✅ Dépôt Git prêt.[/green]")
+        
+        if repo_url and Confirm.ask("Voulez-vous pousser le code vers le dépôt distant maintenant ?", default=True):
+            branch = Prompt.ask("Nom de la branche principale", default="main")
+            run_command(f"git push -u origin {branch}", f"Push vers origin {branch}")
+            
+        console.print("[green]✅ Dépôt Git configuré.[/green]")
 
     # 6. Docker (Optionnel)
     if Confirm.ask("Voulez-vous lancer le build Docker maintenant ?", default=False):
